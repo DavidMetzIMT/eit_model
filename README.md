@@ -1,58 +1,27 @@
-# eit_meshing
+# eit_model
 
-package to manage `pyEIT` mesh 
+package to provide a global structure of models for Electrical Impedance Tomography
 
 ## 1. Introduction
 
+the structure models for Electrical Impedance Tomography is based on:
+- the python package `pyeit` https://github.com/liubenyuan/pyEIT
+- the matlab toolbox `EIDORS`  http://eidors3d.sourceforge.net/
+
 ### 1.1 Dependencies
-
-
 ### 1.2 Features
- - [x] Serial communication with `Sciospec EIT32-device`
- - [x] Setting/reading measurements setups of the `Sciospec EIT32-device`
- - [x] Impedance Measurements aquisition (continious mode) with `Sciospec EIT32-device`
- - [x] Saving of measurements
- - [x] Replay of saved measurements
- - [x] Liveview plots of measurements values
- - [x] Liveview plots of 2D reconstruction using `pyEIT` reconstruction algorithms:Gauss-Newton solver (JAC), Back-projection (BP), 2D GREIT
- - [x] Liveview plots of 2D reconstruction using Neuronal Network
- - [ ] Liveview plots of 3D reconstruction 
- - [x] Liveview of chamber from usb camera and saving of image for measuremnets 
- - [ ] Complete electrode model (CEM) support (not in `pyEIT` implemented yet)
-	
+ - [ ] load data from `pyeit` model and return `pyeit` mesh model
+ - [ ] load `EIDORS` fwd_model
+ - [ ] plot 2d meshes
 ## 2. Installation
-
-`eit_app` is purely python based, it can be installed and run without any difficulty. NOT TESTED YET!!!
-
 ### 2.1 Install global
-
-NOT TESTED YET!!!
-
-$ python setup.py build
-$ python setup.py install
-
-
 ### 2.2 Install 
-
 ## 3. Run the app
-
-
-
-**Note:** the following images may be outdated due to that the parameters of a EIT algorithm may be changed in different versions of `pyEIT`. And it is there in the code, so just run the demo.
-
 ### 3.1 examples of apps
-
-
 ### 3.2 (3D) forward and inverse computing
-
-
-## 4. Contribute to `eit_app`.
-
-
-
+## 4. Contribute to `eit_model`.
 ## 5. Cite our work.
 
-
-**If you find `eit_app` useful, please cite our work!**
+**If you find `eit_model` useful, please cite our work!**
 
 
