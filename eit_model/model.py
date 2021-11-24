@@ -5,9 +5,6 @@ from enum import Enum, auto
 from typing import List
 import numpy as np
 import os
-from numpy.core.shape_base import hstack
-from numpy.lib.arraysetops import ediff1d
-from numpy.lib.polynomial import RankWarning
 
 from eit_app.utils.constants import DEFAULT_DIR, \
                                     DEFAULT_MEASUREMENTS,\
@@ -25,7 +22,6 @@ class BodyTypes(Enum):
     rectangle_2D=auto()
     cubic_3D=auto()
 
-
 class ElectrodePatternTypes(Enum):
     ring=auto()
     grid=auto()
@@ -36,7 +32,7 @@ class EletrodeFormtypes(Enum):
     rectangle=auto()
     
 @dataclass
-class EITBox():
+class EITBox():    
     """ define the overall dimensions of the chamber"""
     length:float=2.0 # on x axis
     width:float=2.0 # on y axis
@@ -69,7 +65,6 @@ class EITChamber():
         y=self.body.box.width/2
         z=self.body.box.height/2
         return [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
-
 
 @dataclass
 class FEM():
@@ -119,20 +114,18 @@ class FEM():
     def get_data_for_plots(self):
         return self.nodes, self.elems, self.elems_data
 
-
+@dataclass
 class Stimulations():
     stim_type:str='Amperes'
     stim_pattern:np.ndarray=None
     meas_pattern:np.ndarray=None
-
+@dataclass
 class Electrodes():
     nodes:np.ndarray=None # 1D array
     z_contact:float=None
     position:np.ndarray=None #1Darray x,y,z,nx,ny,nz
     shape:float=None #????
     obj: str=None # to which it belongs
-
-
 
 class EITModelClass(object):
     """ Class regrouping all information about the virtual model 
