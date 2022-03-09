@@ -7,23 +7,12 @@ import pyeit.eit.interp2d
 import pyeit.mesh.utils
 from matplotlib import axes, figure
 
+from eit_model.image import EITImage
 
-from dataclasses import dataclass
+
 logger = getLogger(__name__)
 
-@dataclass
-class ImageEIT(object):
-    data:np.ndarray=np.array([])
-    label:str=''
-    fwd_model:dict=None
 
-@dataclass
-class ImageDataset(object):
-    data:np.ndarray=np.array([])
-    label:str=''
-    fwd_model:dict=None
-    def get_single(self, idx)-> ImageEIT:
-        return ImageEIT(self.data[idx,:], f'{self.label} #{idx}', self.fwd_model)
 
 
 def get_elem_nodal_data(fwd_model, perm):
@@ -134,7 +123,8 @@ def plot_real_NN_EIDORS(fwd_model, perm_real,*argv):
 
     plt.show(block=False)
 
-def plot_EIT_mesh(fig:figure.Figure, ax:axes.Axes, image:ImageEIT, show:list[bool]=[True] * 4, colorbar_range:list[int]=[0,1])-> None:
+
+def plot_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=[0,1])-> None:
     """[summary]
 
     Args:
@@ -144,7 +134,7 @@ def plot_EIT_mesh(fig:figure.Figure, ax:axes.Axes, image:ImageEIT, show:list[boo
         show (list[bool], optional): [description]. Defaults to [True*4].
     """    
     
-    tri, pts, data= get_elem_nodal_data(image.fwd_model, image.data)
+    tri, pts, data= get_elem_nodal_data(image.fem, image.data)
 
     key= 'elems_data'
     perm=np.real(data[key])
@@ -154,6 +144,54 @@ def plot_EIT_mesh(fig:figure.Figure, ax:axes.Axes, image:ImageEIT, show:list[boo
     else:
         title= image.label +'\nConduct'
     im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
+    # ax.axis("equal")
+    # fig.set_tight_layout(True)
+    # ax.margins(x=0.0, y=0.0)
+    ax.set_aspect('equal', 'box')
+    # ax.set_xlim(-1, 1)
+    # ax.set_ylim(-1, 1)
+    # ax.axis('off')
+    if show[0]:
+        ax.set_title(title)
+    if show[1]:
+        ax.axis('on')
+        ax.set_xlabel("X axis")
+    if show[2]:
+        ax.set_ylabel("Y axis")
+    if show[3]:    
+        fig.colorbar(im,ax=ax)
+    return fig, ax, im
+    
+def plot_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> None:
+    """[summary]
+
+    Args:
+        fig (figure): [description]
+        ax (axes): [description]
+        image (ImageEIT): [description]
+        show (list[bool], optional): [description]. Defaults to [True*4].
+    """    
+    if colorbar_range is None:
+        colorbar_range=[None, None]
+    tri, pts, data= get_elem_nodal_data(image.fem, image.data)
+
+
+    key= 'elems_data'
+    perm=np.real(data[key])
+    if np.all(perm <= 1) and np.all(perm > 0):
+        colorbar_range=[0,1]
+        title= image.label +'\nNorm conduct'
+    else:
+        title= image.label +'\nConduct'
+    im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
+    elec_x=image.fem['elec_pos'][:,0]
+    elec_y=image.fem['elec_pos'][:,1]
+
+    ax.plot(elec_x,elec_y, "ok")
+    for i, (x, y ) in enumerate(zip(elec_x,elec_y)):
+        plt.text(x, y, i+1, color="red", fontsize=12)
+
+    
     # ax.axis("equal")
     # fig.set_tight_layout(True)
     # ax.margins(x=0.0, y=0.0)

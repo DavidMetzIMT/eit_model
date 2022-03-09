@@ -1,175 +1,86 @@
 
 
-from dataclasses import dataclass
-from enum import Enum, auto
-from typing import List
+
+from typing import Any
 import numpy as np
-import os
-
-from eit_app.utils.constants import DEFAULT_DIR, \
-                                    DEFAULT_MEASUREMENTS,\
-                                    DEFAULT_INJECTIONS,\
-                                    DEFAULT_ELECTRODES_CHIP_RING
-
-from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
+from eit_model.data import EITData
+from eit_model.image import EITImage
+import eit_model.setup
+import eit_model.fwd_model
+import eit_model.solver.solver_abc
+import glob_utils.files.matlabfile
+import glob_utils.args.check_type
 
 ## ======================================================================================================================================================
 ##  
 ## ======================================================================================================================================================
-class BodyTypes(Enum):
-    circle_2D=auto()
-    cylinder_3D=auto()
-    rectangle_2D=auto()
-    cubic_3D=auto()
 
-class ElectrodePatternTypes(Enum):
-    ring=auto()
-    grid=auto()
-    polka_dot=auto()
 
-class EletrodeFormtypes(Enum):
-    circular=auto()
-    rectangle=auto()
-    
-@dataclass
-class EITBox():    
-    """ define the overall dimensions of the chamber"""
-    length:float=2.0 # on x axis
-    width:float=2.0 # on y axis
-    height:float=0.0 # on z axis (0.0 for 2D models)
-
-@dataclass
-class EITBody():
-    box:EITBox=EITBox()
-    type:BodyTypes=BodyTypes.circle_2D
-@dataclass
-class ElectrodeForm():
-    type:EletrodeFormtypes=EletrodeFormtypes.circular
-    size:np.ndarray=np.array([0.1, 0]) # diameter/lenght, width
-    
-@dataclass
-class EITElectrodeConfig():
-    type:ElectrodePatternTypes=ElectrodePatternTypes.ring
-    number:int=16
-    position:int='Wall'
-    form:ElectrodeForm=ElectrodeForm()
-
-@dataclass
-class EITChamber():
-    name:str=''
-    body:EITBody=EITBody()
-    electrodes_config:EITElectrodeConfig=EITElectrodeConfig()
-
-    def get_chamber_limit(self):
-        x=self.body.box.length/2
-        y=self.body.box.width/2
-        z=self.body.box.height/2
-        return [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
-
-@dataclass
-class FEM():
-    nodes:np.ndarray=None
-    elems:np.ndarray=None
-    elems_data:np.ndarray=None
-    boundaries:np.ndarray=None
-    gnd_node:int=0
-    refinement:float=0.1
-
-    def set_perm(self, perm:np.ndarray) -> None:
-
-        if perm.ndim==2:
-            data_s1= perm.shape[1]
-            nodes_s0=self.nodes.shape[0]
-            elems_s0=self.elems.shape[0]
-            if data_s1 in [nodes_s0, elems_s0]:
-                perm= perm.T
-        self.elems_data= perm
-    
-    def set_mesh(self,pts,tri,perm):
-        self.nodes= pts
-        self.elems= tri
-        self.set_perm(perm)
-
-    def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
-        perm=format_inputs(fwd_model, perm)
-        tri, pts, data= get_elem_nodal_data(fwd_model, perm)
-        # model.fem.set_mesh(pts, tri, data['elems_data'])
-        self.set_mesh(pts, tri, data['elems_data'])
-        # self.nodes= fwd_model['nodes']
-        # self.elems= fwd_model['elems']
-        # self.set_perm(perm)
-
-    def get_pyeit_mesh(self):
-        return {
-            'node':self.nodes,
-            'element':self.elems,
-            'perm':self.elems_data,
-        }
-
-    def update_from_pyeit(self, mesh_obj:dict):
-        self.nodes= mesh_obj['node']
-        self.elems= mesh_obj['element']
-        self.set_perm(mesh_obj['perm'])
-    
-    def get_data_for_plots(self):
-        return self.nodes, self.elems, self.elems_data
-
-@dataclass
-class Stimulations():
-    stim_type:str='Amperes'
-    stim_pattern:np.ndarray=None
-    meas_pattern:np.ndarray=None
-@dataclass
-class Electrodes():
-    nodes:np.ndarray=None # 1D array
-    z_contact:float=None
-    position:np.ndarray=None #1Darray x,y,z,nx,ny,nz
-    shape:float=None #????
-    obj: str=None # to which it belongs
-
-class EITModelClass(object):
+class EITModel(object):
     """ Class regrouping all information about the virtual model 
     of the measuremnet chamber used for the reconstruction:
     - chamber
     - mesh
     - 
     """
+    name:str= 'EITModel_defaultName'
+
+
     def __init__(self):
         self.Name = 'EITModel_defaultName'
-        self.InjPattern = [[0,0], [0,0]]
+        # self.InjPattern = [[0,0], [0,0]]
         self.Amplitude= float(1)
-        self.meas_pattern=[[0,0], [0,0]]
+        # self.meas_pattern=[[0,0], [0,0]]
         self.n_el=16
         self.p=0.5
         self.lamb=0.01
         self.n=64
 
         pattern='ad'
-        path= os.path.join(DEFAULT_DIR,DEFAULT_INJECTIONS[pattern])
-        self.InjPattern=np.loadtxt(path, dtype=int)
+        # path= os.path.join(DEFAULT_DIR,DEFAULT_INJECTIONS[pattern])
+        # self.InjPattern=np.loadtxt(path, dtype=int)
         # print(type(self.InjPattern))
-        path= os.path.join(DEFAULT_DIR,DEFAULT_MEASUREMENTS[pattern])
-        self.meas_pattern=np.loadtxt(path)
+        # path= os.path.join(DEFAULT_DIR,DEFAULT_MEASUREMENTS[pattern])
+        # self.meas_pattern=np.loadtxt(path)
         # print(type(self.MeasPattern))
         # print(self.MeasPattern)
         self.SolverType= 'none'
         self.FEMRefinement=0.1
-        self.translate_inj_pattern_4_chip()
+        # self.translate_inj_pattern_4_chip()
 
-        self.chamber:EITChamber=EITChamber()
-        self.fem:FEM=FEM()
-        self.stimulations:List[Stimulations]=[Stimulations()]
+        self.setup= eit_model.setup.EITSetup()
+        self.fwd_model=eit_model.fwd_model.FwdModel()
+        self.fem= eit_model.fwd_model.FEModel()
+
 
     
     def set_solver(self, solver_type):
         self.SolverType= solver_type
+    
+    def import_matlab_env(self, var_dict):
+        
+        m= glob_utils.files.matlabfile.MatFileStruct()
+        struct= m._extract_matfile(var_dict)
+
+        fmdl= struct['fwd_model']
+        fmdl['electrode']= eit_model.fwd_model.mk_list_from_struct(fmdl['electrode'], eit_model.fwd_model.Electrode)
+        fmdl['stimulation']= eit_model.fwd_model.mk_list_from_struct(fmdl['stimulation'], eit_model.fwd_model.Stimulation)
+        self.fwd_model= eit_model.fwd_model.FwdModel(**fmdl)
+
+        setup= struct['setup']
+        self.setup=eit_model.setup.EITSetup(**setup)
+
+        self.fem= eit_model.fwd_model.FEModel(
+            **self.fwd_model.for_FEModel(), **self.setup.for_FEModel())
+
 
     def translate_inj_pattern_4_chip(self, path=None):
         if path:
             self.ChipPins=np.loadtxt(path)
         else:
-            path= os.path.join(DEFAULT_DIR,DEFAULT_ELECTRODES_CHIP_RING)
-            self.ChipPins=np.loadtxt(path)
+            # path= os.path.join(DEFAULT_DIR,DEFAULT_ELECTRODES_CHIP_RING)
+            # self.ChipPins=np.loadtxt(path)
+            """"""
         
         # test if load data are compatible...
         #todo..
@@ -182,16 +93,126 @@ class EITModelClass(object):
             new[old==o_num[n]]= n_num[n]
             
         self.InjPattern= new # to list???
-        
-    def get_fem_refinement(self):
-        return self.fem.refinement
-    def get_nd_elecs(self, all:bool=True):
-        return self.chamber.electrodes_config.number 
-
-
-
-
-if __name__ == '__main__':
-    eit= EITModelClass()
     
-    pass
+    @property    
+    def refinement(self):
+        return self.fem.refinement
+    
+    def set_refinement(self, value:float):
+        glob_utils.args.check_type.isfloat(value,raise_error=True)
+        if value >=1:
+            raise ValueError('Value of FEM refinement have to be < 1.0')
+
+        self.fem.refinement= value
+
+    @property
+    def n_elec(self, all:bool=True):
+        return len(self.fem.electrode)
+
+    # def set_n_elec(self,value:int):
+        
+    #     glob_utils.args.check_type.isint(value,raise_error=True)
+    #     if value <=0:
+    #         raise ValueError('Value of FEM refinement have to be > 0')
+        
+    #     self.setup.elec_layout.elecNb=value
+
+
+    def pyeit_mesh(self, image:EITImage=None)->dict[str, np.ndarray]:
+        """Return mesh needed for pyeit package
+
+        mesh ={
+            'node':np.ndarray shape(n_nodes, 2) for 2D , shape(n_nodes, 3) for 3D ,
+            'element':np.ndarray shape(n_elems, 3) for 2D shape(n_elems, 4) for 3D,
+            'perm':np.ndarray shape(n_elems,1),
+        }
+
+        Returns:
+            dict: mesh dictionary
+        """
+        if image is not None and isinstance(image, EITImage):
+            return {
+                'node':image.fem['nodes'],
+                'element':image.fem['elems'],
+                'perm':image.data,
+            }
+
+        return self.fem.get_pyeit_mesh()
+
+    def elec_pos(self)->np.ndarray:
+        """Return the electrode positions 
+
+            pos[i,:]= [posx, posy, posz]
+
+        Returns:
+            np.ndarray: array like of shape (n_elec, 3)
+        """
+        return self.fem.elec_pos_orient()[:,:3]
+
+    def excitation_mat(self)->np.ndarray:
+        """Return the excitaion matrix
+
+           ex_mat[i,:]=[elec#IN, elec#OUT]
+
+        Returns:
+            np.ndarray: array like of shape (n_elec, 2)
+        """
+        return self.fwd_model.ex_mat()
+    
+    @property
+    def meas_pattern(self)->np.ndarray:
+        """Return the meas_pattern
+
+            used to build the measurement vector
+            measU = meas_pattern.dot(meas_ch)
+
+        Returns:
+            np.ndarray: array like of shape (n_measU, n_meas_ch*exitation)
+        """
+        return self.fwd_model.ex_mat()
+
+    def build_img(self, data:np.ndarray=None, label:str='image')-> EITImage:
+        
+        data=self.fem.format_perm(data) if data is not None else self.fem.elems_data 
+        fem={
+            'nodes':self.fem.nodes,
+            'elems':self.fem.elems,
+            'elec_pos':self.fem.elec_pos_orient()
+        }
+        return EITImage(data, label, fem)
+    
+    def update_mesh(self, mesh_data:Any)->None:
+        """Update FEM Mesh
+
+        Args:
+            mesh_data (Any): can be a mesh dict from Pyeit 
+        """
+
+        if isinstance(mesh_data, dict):
+            self.fem.update_from_pyeit(mesh_data)
+
+    def update_elec_from_pyeit(self,indx_elec:np.ndarray)->None:
+
+        self.fem.update_elec_from_pyeit(indx_elec)
+        
+
+    def build_meas_data(self, ref:np.ndarray, frame:np.ndarray, label:str= '')->EITData:
+        """"""
+        #TODO  mk som test on the shape of the inputs
+        meas= np.hstack((np.reshape(ref,(-1,1)), np.reshape(frame,(-1,1))))
+        print(meas)
+        return EITData(meas, label)
+if __name__ == '__main__':
+
+    import glob_utils.files.matlabfile
+    import glob_utils.files.files
+
+    file_path='E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat'
+    var_dict= glob_utils.files.files.load_mat(file_path)
+
+    eit= EITModel()
+    eit.import_matlab_env(var_dict)
+    print(eit.fwd_model.electrode[1])
+    print(eit.fwd_model.electrode[1])
+    print(eit.refinement)
+
