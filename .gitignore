@@ -6,3 +6,4 @@ build
 dist
 exe
 _test_scripts
+*.log
