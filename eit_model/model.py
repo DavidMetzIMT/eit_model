@@ -1,6 +1,7 @@
 
 
 
+import os
 from typing import Any
 import numpy as np
 from eit_model.data import EITData
@@ -53,6 +54,17 @@ class EITModel(object):
     
     def set_solver(self, solver_type):
         self.SolverType= solver_type
+
+    def load_defaultmatfile(self):
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'default','default_eit_model.mat')
+        self.load_matfile(filename)
+
+    def load_matfile(self, file_path=None):
+        if file_path is None:
+            return
+        var_dict= glob_utils.files.files.load_mat(file_path)
+        self.import_matlab_env(var_dict)
     
     def import_matlab_env(self, var_dict):
         
@@ -234,11 +246,8 @@ if __name__ == '__main__':
     import glob_utils.log.log
     glob_utils.log.log.main_log()
 
-    file_path='E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat'
-    var_dict= glob_utils.files.files.load_mat(file_path)
-
     eit= EITModel()
-    eit.import_matlab_env(var_dict)
+    eit.load_defaultmatfile()
 
     m= np.max(eit.fem.nodes, axis=0)
     n= np.min(eit.fem.nodes, axis=0)
