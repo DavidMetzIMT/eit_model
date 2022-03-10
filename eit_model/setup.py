@@ -48,11 +48,25 @@ class EITChamber():
     ALLOW_ELEC_PLACEMENT:np.ndarray=field(default_factory=lambda:np.array([]))
 
 
-    def get_chamber_limit(self):
+    def box_limit(self)->np.ndarray:
+        """Return the Chamber limits as ndarray
+
+        limits= [
+            [xmin, ymin (, zmin)]
+            [xmax, ymax (, zmax)]
+        ]
+
+        if the height of the chamber is zero a 2D box limit is returned 
+
+        Returns:
+            np.ndarray: box limit 
+        """
         x=self.length/2
         y=self.width/2
         z=self.height/2
-        return [[-x,-y,-z],[x,y,z]] if z==0 else [[-x,-y],[x,y]]
+        limits= [[-x,-y,-z],[x,y,z]] if z>0 else [[-x,-y],[x,y]]
+        return np.array(limits)
+    
 
     @property
     def length(self):
@@ -88,6 +102,14 @@ class EITSetup():
 if __name__ == '__main__':
     import glob_utils.files.matlabfile
     import glob_utils.files.files
+
+
+    from matplotlib import pyplot as plt
+    import glob_utils.files.matlabfile
+
+    import glob_utils.files.files
+    import glob_utils.log.log
+    glob_utils.log.log.main_log()
 
     file_path='E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat'
     var_dict= glob_utils.files.files.load_mat(file_path)

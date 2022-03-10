@@ -3,7 +3,7 @@ from dataclasses import  dataclass, field
 import numpy as np
 
 
-from eit_model.plot.mesh_2D import format_inputs, get_elem_nodal_data
+from eit_model.plot.mesh import format_inputs, get_elem_nodal_data
 
 
 
@@ -128,6 +128,14 @@ class FEModel():
     refinement:float=0.1
 
     def format_perm(self, perm:np.ndarray) -> np.ndarray:
+        """_summary_
+
+        Args:
+            perm (np.ndarray): _description_
+
+        Returns:
+            np.ndarray: perm with shape(n_nodes, 1)
+        """
         if np.isscalar(perm):
             perm=np.ones(self.elems.shape[0], dtype=np.float)*perm
         
@@ -217,6 +225,14 @@ class FEModel():
     #     return EITImage( data, img_label, fem)
 
 if __name__ == '__main__':
+
+    from matplotlib import pyplot as plt
+    import glob_utils.files.matlabfile
+
+    import glob_utils.files.files
+    import glob_utils.log.log
+    glob_utils.log.log.main_log()
+    
     import glob_utils.files.matlabfile
     import glob_utils.files.files
 
