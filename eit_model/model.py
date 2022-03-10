@@ -7,7 +7,6 @@ from eit_model.data import EITData
 from eit_model.image import EITImage
 import eit_model.setup
 import eit_model.fwd_model
-import eit_model.solver.solver_abc
 import glob_utils.files.matlabfile
 import glob_utils.args.check_type
 
@@ -27,25 +26,23 @@ class EITModel(object):
 
 
     def __init__(self):
-        self.Name = 'EITModel_defaultName'
-        # self.InjPattern = [[0,0], [0,0]]
-        self.Amplitude= float(1)
-        # self.meas_pattern=[[0,0], [0,0]]
-        self.n_el=16
-        self.p=0.5
-        self.lamb=0.01
-        self.n=64
+        # self.Name = 'EITModel_defaultName'
+        # # self.InjPattern = [[0,0], [0,0]]
+        # self.Amplitude= float(1)
+        # # self.meas_pattern=[[0,0], [0,0]]
+        # self.n_el=16
+        # self.p=0.5
+        # self.lamb=0.01
+        # self.n=64
 
-        pattern='ad'
+        # pattern='ad'
         # path= os.path.join(DEFAULT_DIR,DEFAULT_INJECTIONS[pattern])
         # self.InjPattern=np.loadtxt(path, dtype=int)
-        # print(type(self.InjPattern))
         # path= os.path.join(DEFAULT_DIR,DEFAULT_MEASUREMENTS[pattern])
         # self.meas_pattern=np.loadtxt(path)
-        # print(type(self.MeasPattern))
-        # print(self.MeasPattern)
-        self.SolverType= 'none'
-        self.FEMRefinement=0.1
+
+        # self.SolverType= 'none'
+        # self.FEMRefinement=0.1
         # self.translate_inj_pattern_4_chip()
 
         self.setup= eit_model.setup.EITSetup()
@@ -60,7 +57,7 @@ class EITModel(object):
     def import_matlab_env(self, var_dict):
         
         m= glob_utils.files.matlabfile.MatFileStruct()
-        struct= m._extract_matfile(var_dict)
+        struct= m._extract_matfile(var_dict,True)
 
         fmdl= struct['fwd_model']
         fmdl['electrode']= eit_model.fwd_model.mk_list_from_struct(fmdl['electrode'], eit_model.fwd_model.Electrode)
@@ -158,7 +155,27 @@ class EITModel(object):
             np.ndarray: array like of shape (n_elec, 2)
         """
         return self.fwd_model.ex_mat()
-    
+    @property    
+    def bbox(self)->np.ndarray:
+        """Return the mesh /chamber limits as ndarray
+
+        limits= [
+            [xmin, ymin (, zmin)]
+            [xmax, ymax (, zmax)]
+        ]
+
+        if the height of the chamber is zero a 2D box limit is returned 
+
+        Returns:
+            np.ndarray: box limit 
+        """
+        # TODO 
+        # add a chekcing if chmaber and mesh are compatible
+        return self.setup.chamber.box_limit()
+
+    def set_bbox(self, val:np.ndarray)->None:
+        self.setup.chamber.boxSize= val
+
     @property
     def meas_pattern(self)->np.ndarray:
         """Return the meas_pattern
@@ -190,6 +207,10 @@ class EITModel(object):
 
         if isinstance(mesh_data, dict):
             self.fem.update_from_pyeit(mesh_data)
+            # update chamber setups to fit the new mesh...
+            m= np.max(self.fem.nodes, axis=0)
+            n= np.min(self.fem.nodes, axis=0)
+            self.set_bbox(np.round(m-n,1))
 
     def update_elec_from_pyeit(self,indx_elec:np.ndarray)->None:
 
@@ -200,18 +221,28 @@ class EITModel(object):
         """"""
         #TODO  mk som test on the shape of the inputs
         meas= np.hstack((np.reshape(ref,(-1,1)), np.reshape(frame,(-1,1))))
-        print(meas)
         return EITData(meas, label)
 if __name__ == '__main__':
 
     import glob_utils.files.matlabfile
     import glob_utils.files.files
 
+    from matplotlib import pyplot as plt
+    import glob_utils.files.matlabfile
+
+    import glob_utils.files.files
+    import glob_utils.log.log
+    glob_utils.log.log.main_log()
+
     file_path='E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat'
     var_dict= glob_utils.files.files.load_mat(file_path)
 
     eit= EITModel()
     eit.import_matlab_env(var_dict)
+
+    m= np.max(eit.fem.nodes, axis=0)
+    n= np.min(eit.fem.nodes, axis=0)
+    print(m, n, np.round(m-n,1))
     print(eit.fwd_model.electrode[1])
     print(eit.fwd_model.electrode[1])
     print(eit.refinement)
