@@ -1,17 +1,11 @@
 import abc
 from typing import Any
 
-import numpy as np
-import enum
-from eit_model.data import EITData
-from eit_model.image import EITImage
+
+from eit_model.data import EITMeas, EITImage
+
 from eit_model.model import EITModel
 import glob_utils.flags.flag
-
-class RecCMDs(enum.Enum):
-    initialize=enum.auto()
-    reconstruct=enum.auto()
-
 
 class SolverNotReadyError(BaseException):
     """"""
@@ -27,45 +21,36 @@ class Solver(abc.ABC):
         self.eit_model= model
         self.ready=glob_utils.flags.flag.CustomFlag()
 
-        self.cmd_func= {
-            RecCMDs.initialize:self.prepare_rec,
-            RecCMDs.reconstruct:self.rec
-        }
         self.__post_init__()
-
-    def run(self, cmd:RecCMDs, *args, **kwargs):
-        if not isinstance(cmd, RecCMDs):
-            return None
-        return self.cmd_func[cmd](*args, **kwargs)
 
     @abc.abstractmethod
     def __post_init__(self)-> None:
         """Custom post initialization
         """
 
-    def prepare_rec(self, rec_params:Any=None)-> tuple[EITImage, EITData]:
+    def prepare_rec(self, params:Any=None)-> tuple[EITImage, EITMeas]:
         """Prepare the solver to be ready for reconstruction      
 
         Returns:
             tuple[EITImage, EITData]: a reconstructed EIT image and the 
             corresponding EIT data used for it (random generated, simulated 
             or loaded...)
-            rec_params[Any]: Reconstruction parameters
+            params[Any]: Reconstruction parameters
         """
-        return self._custom_preparation(rec_params)
+        return self._custom_preparation(params)
 
     @abc.abstractmethod
-    def _custom_preparation(self, rec_params:Any=None)-> tuple[EITImage, EITData]:
+    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITMeas]:
         """Custom preparation of the solver to be ready for reconstruction      
 
         Returns:
             tuple[EITImage, EITData]: a reconstructed EIT image and the 
             corresponding EIT data used for it (random generated, simulated 
             or loaded...)
-            rec_params[Any]: Reconstruction parameters
+            params[Any]: Reconstruction parameters
         """
     
-    def rec(self, data:EITData)-> EITImage:
+    def rec(self, data:EITMeas)-> EITImage:
         """Reconstruction of an EIT image using EIT data/measurements
 
         Args:
@@ -86,7 +71,7 @@ class Solver(abc.ABC):
         return self._custom_rec(data)
         
     @abc.abstractmethod
-    def _custom_rec(self, data:EITData)-> EITImage:
+    def _custom_rec(self, data:EITMeas)-> EITImage:
         """Custom reconstruction of an EIT image using EIT data/measurements
 
         Args:

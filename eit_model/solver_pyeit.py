@@ -14,10 +14,9 @@ import pyeit.eit.greit as greit
 import pyeit.eit.jac as jac
 import pyeit.mesh
 import pyeit.mesh.shape
-from eit_model.data import EITData
-from eit_model.image import EITImage
+from eit_model.data import EITMeas, EITImage
+
 from eit_model.model import EITModel
-from eit_model.plot.mesh import plot_EIT_image
 from eit_model.solver_abc import Solver
 from pyeit.eit.base import EitBase
 from pyeit.eit.fem import Forward
@@ -66,19 +65,26 @@ class SolverPyEIT(Solver):
         self.params=PyEitRecParams()
 
     # @abc.abstractmethod
-    def _custom_preparation(self, rec_params:Any)-> tuple[EITData, EITImage]:
+    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITMeas]:
         """Custom preparation of the solver to be ready for reconstruction      
 
         Returns:
             tuple[EITImage, EITData]: a reconstructed EIT image and the 
             corresponding EIT data used for it (random generated, simulated 
             or loaded...)
-            rec_params[Any]: Reconstruction parameters
+            params[Any]: Reconstruction parameters
         """
-
+        logger.info('Preparation of PYEIT solver: Start...')
+        self._build_mesh_from_pyeit(import_design=True)
+        # solver.init_fwd() # already set in inv less time of computation...
+        self.init_inv(params= params,import_fwd=True) 
+        sim_data, img_h, img_ih= self.simulate()
+        img_rec= self.solve_inv(sim_data)
+        logger.info('Preparation of PYEIT solver: Done')
+        return img_rec, sim_data
 
     # @abc.abstractmethod
-    def _custom_rec(self, data:EITData)-> EITImage:
+    def _custom_rec(self, data:EITMeas)-> EITImage:
         """Custom reconstruction of an EIT image using EIT data/measurements
 
         Args:
@@ -130,7 +136,7 @@ class SolverPyEIT(Solver):
 
         return mesh, indx_elec
     
-    def solve_fwd(self, image:EITImage) -> EITData:
+    def solve_fwd(self, image:EITImage) -> EITMeas:
         """Solve the forward problem
         
         Simulate measurements based on the EIT Image (conductivity) and 
@@ -161,7 +167,7 @@ class SolverPyEIT(Solver):
 
         return self.eit_model.build_meas_data(f.v, f.v, 'solved data')
     
-    def simulate(self, image:EITImage=None, homogenious_conduct:float=1.0)-> tuple[EITData, EITImage, EITImage]:
+    def simulate(self, image:EITImage=None, homogenious_conduct:float=1.0)-> tuple[EITMeas, EITImage, EITImage]:
         """Run a simulation of a EIT measurement and a reference measurement
         
         Args:
@@ -240,7 +246,7 @@ class SolverPyEIT(Solver):
         self.set_params(self.params)
         self.ready.set()# activate the solver
     
-    def solve_inv(self, data:EITData)-> EITImage:
+    def solve_inv(self, data:EITMeas)-> EITImage:
         """Solve of the inverse problem or Reconstruction of an EIT image 
         using EIT data/measurements
 
@@ -332,11 +338,7 @@ class SolverPyEIT(Solver):
 
         pyeit_mesh, indx_elec = pyeit.mesh.create(**par_tmp)
 
-        self.eit_model.update_mesh(pyeit_mesh) # set the mesh in the model
-
-        if not import_design:
-            # set
-            self.eit_model.update_elec_from_pyeit(indx_elec)
+        self.eit_model.update_mesh(pyeit_mesh, indx_elec) # set the mesh in the model
 
 
 
@@ -353,18 +355,18 @@ if __name__ == '__main__':
     var_dict= glob_utils.files.files.load_mat(file_path)
 
     eit_mdl= EITModel()
-    eit_mdl.import_matlab_env(var_dict)
+    eit_mdl.load_defaultmatfile()
 
     solver= SolverPyEIT(eit_mdl)
-    # solver.prepare_rec()
+    img_rec, data_sim=solver.prepare_rec()
 
-    solver._build_mesh_from_pyeit(import_design=True)
-    # solver.init_fwd() # already set in inv less time of computation...
-    solver.init_inv(import_fwd=True) 
-    sim_data, img_h, img_ih= solver.simulate()
-    img_rec= solver.solve_inv(sim_data)
+    # solver._build_mesh_from_pyeit(import_design=True)
+    # # solver.init_fwd() # already set in inv less time of computation...
+    # solver.init_inv(import_fwd=True) 
+    # sim_data, img_h, img_ih= solver.simulate()
+    # img_rec= solver.solve_inv(sim_data)
 
-    fig, ax = plt.subplots(1,1)
-    plot_EIT_image(fig, ax, img_rec)
-    plt.show()
+    # fig, ax = plt.subplots(1,1)
+    # plot_EIT_image(fig, ax, img_rec)
+    # plt.show()
 
