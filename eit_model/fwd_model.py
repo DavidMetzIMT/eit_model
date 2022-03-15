@@ -3,7 +3,7 @@ from dataclasses import  dataclass, field
 import numpy as np
 
 
-from eit_model.plot.mesh import format_inputs, get_elem_nodal_data
+# from eit_model.plot.mesh import format_inputs, get_elem_nodal_data
 
 
 
@@ -153,14 +153,14 @@ class FEModel():
         self.elems= tri
         self.elems_data= self.format_perm(perm)
 
-    def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
-        perm=format_inputs(fwd_model, perm)
-        tri, pts, data= get_elem_nodal_data(fwd_model, perm)
-        # model.fem.set_mesh(pts, tri, data['elems_data'])
-        self.set_mesh(pts, tri, data['elems_data'])
-        # self.nodes= fwd_model['nodes']
-        # self.elems= fwd_model['elems']
-        # self.set_perm(perm)
+    # def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
+    #     perm=format_inputs(fwd_model, perm)
+    #     tri, pts, data= get_elem_nodal_data(fwd_model, perm)
+    #     # model.fem.set_mesh(pts, tri, data['elems_data'])
+    #     self.set_mesh(pts, tri, data['elems_data'])
+    #     # self.nodes= fwd_model['nodes']
+    #     # self.elems= fwd_model['elems']
+    #     # self.set_perm(perm)
 
     def get_pyeit_mesh(self):
         """Return mesh needed for pyeit package
@@ -180,7 +180,7 @@ class FEModel():
             'perm':self.elems_data,
         }
 
-    def update_from_pyeit(self, mesh_obj:dict):
+    def update_from_pyeit(self, mesh_obj:dict, indx_elec:np.ndarray)->None:
 
         # check if all keys are passed
         std_keys= list(self.get_pyeit_mesh().keys())
@@ -190,6 +190,7 @@ class FEModel():
             raise ValueError(f'mesh_dat should be a dict with following keys: {std_keys}')
 
         self.set_mesh(mesh_obj['node'],mesh_obj['element'], mesh_obj['perm'])
+        self.update_elec_from_pyeit(indx_elec)
     
     def get_data_for_plots(self):
         return self.nodes, self.elems, self.elems_data
@@ -208,6 +209,12 @@ class FEModel():
         return pos
     
     def update_elec_from_pyeit(self, indx_elec:np.ndarray)->None:
+        """Update the electrode object using the actual nodes (from pyeit)
+
+        Args:
+            indx_elec (np.ndarray): The nodes index in the pyeit mesh 
+            corresponding to the electrodes
+        """
 
         self.electrode=[None for _ in list(np.int_(indx_elec))]
         for i in list(np.int_(indx_elec)):
@@ -215,14 +222,6 @@ class FEModel():
             pos= self.nodes[i,:]
             self.electrode[i]=Electrode(nodes= nodes, pos= pos, shape=0.0)
     
-    # def build_img(self, data:np.ndarray=None, img_label:str='image')->EITImage:
-        
-    #     data=self.format_perm(data) if data is not None else self.elems_data 
-    #     fem={
-    #         'nodes':self.nodes,
-    #         'elems':self.elems
-    #     }
-    #     return EITImage( data, img_label, fem)
 
 if __name__ == '__main__':
 
