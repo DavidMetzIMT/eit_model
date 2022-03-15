@@ -4,8 +4,7 @@
 import os
 from typing import Any
 import numpy as np
-from eit_model.data import EITData
-from eit_model.image import EITImage
+from eit_model.data import EITMeas ,EITImage
 import eit_model.setup
 import eit_model.fwd_model
 import glob_utils.files.matlabfile
@@ -186,10 +185,11 @@ class EITModel(object):
         return self.setup.chamber.box_limit()
 
     def set_bbox(self, val:np.ndarray)->None:
-        self.setup.chamber.boxSize= val
 
-    @property
-    def meas_pattern(self)->np.ndarray:
+        self.setup.chamber.set_box_size(val)
+
+
+    def meas_pattern(self, exc_idx)->np.ndarray:
         """Return the meas_pattern
 
             used to build the measurement vector
@@ -198,19 +198,13 @@ class EITModel(object):
         Returns:
             np.ndarray: array like of shape (n_measU, n_meas_ch*exitation)
         """
-        return self.fwd_model.ex_mat()
+        return self.fwd_model.stimulation[exc_idx].meas_pattern
 
     def build_img(self, data:np.ndarray=None, label:str='image')-> EITImage:
         
-        data=self.fem.format_perm(data) if data is not None else self.fem.elems_data 
-        fem={
-            'nodes':self.fem.nodes,
-            'elems':self.fem.elems,
-            'elec_pos':self.fem.elec_pos_orient()
-        }
-        return EITImage(data, label, fem)
+        return EITImage(data, label, self.fem)
     
-    def update_mesh(self, mesh_data:Any)->None:
+    def update_mesh(self, mesh_data:Any, indx_elec:np.ndarray)->None:
         """Update FEM Mesh
 
         Args:
@@ -218,22 +212,29 @@ class EITModel(object):
         """
 
         if isinstance(mesh_data, dict):
-            self.fem.update_from_pyeit(mesh_data)
+            self.fem.update_from_pyeit(mesh_data, indx_elec)
             # update chamber setups to fit the new mesh...
             m= np.max(self.fem.nodes, axis=0)
             n= np.min(self.fem.nodes, axis=0)
             self.set_bbox(np.round(m-n,1))
 
-    def update_elec_from_pyeit(self,indx_elec:np.ndarray)->None:
 
-        self.fem.update_elec_from_pyeit(indx_elec)
+    # def update_elec_from_pyeit(self,indx_elec:np.ndarray)->None:
+    #     """Update the electrode object contained in the fem
+
+    #     Args:
+    #         indx_elec (np.ndarray): The nodes index in the pyeit mesh 
+    #         corresponding to the electrodes
+    #     """
+    #     self.fem.update_elec_from_pyeit(indx_elec)
         
 
-    def build_meas_data(self, ref:np.ndarray, frame:np.ndarray, label:str= '')->EITData:
+    def build_meas_data(self, ref:np.ndarray, frame:np.ndarray, label:str= '')->EITMeas:
         """"""
         #TODO  mk som test on the shape of the inputs
         meas= np.hstack((np.reshape(ref,(-1,1)), np.reshape(frame,(-1,1))))
-        return EITData(meas, label)
+        return EITMeas(meas, label)
+
 if __name__ == '__main__':
 
     import glob_utils.files.matlabfile

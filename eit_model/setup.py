@@ -1,4 +1,5 @@
 
+from asyncio.log import logger
 from dataclasses import  dataclass, field
 import numpy as np
 
@@ -61,11 +62,24 @@ class EITChamber():
         Returns:
             np.ndarray: box limit 
         """
+        logger.debug(f'{self.boxSize=}')
         x=self.length/2
         y=self.width/2
         z=self.height/2
         limits= [[-x,-y,-z],[x,y,z]] if z>0 else [[-x,-y],[x,y]]
         return np.array(limits)
+    
+    def set_box_size(self, val:np.ndarray)->None:
+        val= val.flatten()
+
+        if val.size==1:
+            raise TypeError('val of box size should be [sizex, sizey (, sizez)]')
+        elif val.size==2:
+            val=np.append(val, 0)
+        elif val.size>3:
+            val=val[:3]
+            
+        self.boxSize= val
     
 
     @property
