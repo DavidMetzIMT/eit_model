@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from matplotlib.figure import Figure
 from dataclasses import dataclass, field
-from eit_model.data import EITMeas, EITImage
+from eit_model.data import EITData, EITImage
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ class EITUPlot(EITCustomPlots):
         """Custom initialization"""
         self.type=EITPlotsType.U_plot  
 
-    def plot(self, fig:figure.Figure, ax:axes.Axes, data:EITMeas, labels:CustomLabels=None, options:Any=None)-> Tuple[figure.Figure,axes.Axes]:
+    def plot(self, fig:figure.Figure, ax:axes.Axes, data:EITData, labels:CustomLabels=None, options:Any=None)-> Tuple[figure.Figure,axes.Axes]:
         """Plot"""
 
         if labels is None or not isinstance(labels, CustomLabels):
@@ -125,7 +125,7 @@ class EITUPlotDiff(EITCustomPlots):
         """Custom initialization"""
         self.type=EITPlotsType.U_plot_diff  
 
-    def plot(self, fig:figure.Figure, ax:axes.Axes, data:EITMeas, labels:CustomLabels=None, options:Any=None) -> Tuple[figure.Figure,axes.Axes]:
+    def plot(self, fig:figure.Figure, ax:axes.Axes, data:EITData, labels:CustomLabels=None, options:Any=None) -> Tuple[figure.Figure,axes.Axes]:
         """Plot"""
 
         if labels is None or not isinstance(labels, CustomLabels):

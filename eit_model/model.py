@@ -4,7 +4,7 @@
 import os
 from typing import Any
 import numpy as np
-from eit_model.data import EITMeas ,EITImage
+from eit_model.data import EITData ,EITImage
 import eit_model.setup
 import eit_model.fwd_model
 import glob_utils.files.matlabfile
@@ -229,11 +229,11 @@ class EITModel(object):
     #     self.fem.update_elec_from_pyeit(indx_elec)
         
 
-    def build_meas_data(self, ref:np.ndarray, frame:np.ndarray, label:str= '')->EITMeas:
+    def build_meas_data(self, ref:np.ndarray, frame:np.ndarray, label:str= '')->EITData:
         """"""
         #TODO  mk som test on the shape of the inputs
         meas= np.hstack((np.reshape(ref,(-1,1)), np.reshape(frame,(-1,1))))
-        return EITMeas(meas, label)
+        return EITData(meas, label)
 
 if __name__ == '__main__':
 

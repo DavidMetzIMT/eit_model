@@ -3,8 +3,6 @@ from dataclasses import  dataclass, field
 import numpy as np
 
 
-# from eit_model.plot.mesh import format_inputs, get_elem_nodal_data
-
 
 
 @dataclass

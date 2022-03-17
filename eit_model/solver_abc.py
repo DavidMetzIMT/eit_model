@@ -2,7 +2,7 @@ import abc
 from typing import Any
 
 
-from eit_model.data import EITMeas, EITImage
+from eit_model.data import EITData, EITImage
 
 from eit_model.model import EITModel
 import glob_utils.flags.flag
@@ -28,7 +28,7 @@ class Solver(abc.ABC):
         """Custom post initialization
         """
 
-    def prepare_rec(self, params:Any=None)-> tuple[EITImage, EITMeas]:
+    def prepare_rec(self, params:Any=None)-> tuple[EITImage, EITData]:
         """Prepare the solver to be ready for reconstruction      
 
         Returns:
@@ -40,7 +40,7 @@ class Solver(abc.ABC):
         return self._custom_preparation(params)
 
     @abc.abstractmethod
-    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITMeas]:
+    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITData]:
         """Custom preparation of the solver to be ready for reconstruction      
 
         Returns:
@@ -50,7 +50,7 @@ class Solver(abc.ABC):
             params[Any]: Reconstruction parameters
         """
     
-    def rec(self, data:EITMeas)-> EITImage:
+    def rec(self, data:EITData)-> EITImage:
         """Reconstruction of an EIT image using EIT data/measurements
 
         Args:
@@ -71,7 +71,7 @@ class Solver(abc.ABC):
         return self._custom_rec(data)
         
     @abc.abstractmethod
-    def _custom_rec(self, data:EITMeas)-> EITImage:
+    def _custom_rec(self, data:EITData)-> EITImage:
         """Custom reconstruction of an EIT image using EIT data/measurements
 
         Args:

@@ -14,7 +14,7 @@ import pyeit.eit.greit as greit
 import pyeit.eit.jac as jac
 import pyeit.mesh
 import pyeit.mesh.shape
-from eit_model.data import EITMeas, EITImage
+from eit_model.data import EITData, EITImage
 
 from eit_model.model import EITModel
 from eit_model.solver_abc import Solver
@@ -65,7 +65,7 @@ class SolverPyEIT(Solver):
         self.params=PyEitRecParams()
 
     # @abc.abstractmethod
-    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITMeas]:
+    def _custom_preparation(self, params:Any=None)-> tuple[EITImage, EITData]:
         """Custom preparation of the solver to be ready for reconstruction      
 
         Returns:
@@ -84,7 +84,7 @@ class SolverPyEIT(Solver):
         return img_rec, sim_data
 
     # @abc.abstractmethod
-    def _custom_rec(self, data:EITMeas)-> EITImage:
+    def _custom_rec(self, data:EITData)-> EITImage:
         """Custom reconstruction of an EIT image using EIT data/measurements
 
         Args:
@@ -136,7 +136,7 @@ class SolverPyEIT(Solver):
 
         return mesh, indx_elec
     
-    def solve_fwd(self, image:EITImage) -> EITMeas:
+    def solve_fwd(self, image:EITImage) -> EITData:
         """Solve the forward problem
         
         Simulate measurements based on the EIT Image (conductivity) and 
@@ -167,7 +167,7 @@ class SolverPyEIT(Solver):
 
         return self.eit_model.build_meas_data(f.v, f.v, 'solved data')
     
-    def simulate(self, image:EITImage=None, homogenious_conduct:float=1.0)-> tuple[EITMeas, EITImage, EITImage]:
+    def simulate(self, image:EITImage=None, homogenious_conduct:float=1.0)-> tuple[EITData, EITImage, EITImage]:
         """Run a simulation of a EIT measurement and a reference measurement
         
         Args:
@@ -246,7 +246,7 @@ class SolverPyEIT(Solver):
         self.set_params(self.params)
         self.ready.set()# activate the solver
     
-    def solve_inv(self, data:EITMeas)-> EITImage:
+    def solve_inv(self, data:EITData)-> EITImage:
         """Solve of the inverse problem or Reconstruction of an EIT image 
         using EIT data/measurements
 

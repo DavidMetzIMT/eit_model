@@ -6,7 +6,7 @@ import numpy as np
 from eit_model import fwd_model
 
 @dataclass
-class EITMeas(object):
+class EITData(object):
     meas:np.ndarray=np.array([])
     label:str=''
 
