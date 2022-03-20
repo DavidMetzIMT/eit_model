@@ -1,6 +1,6 @@
 import numpy as np
 from eit_model.model import EITModel
-from eit_model.plot import format_inputs, plot_2D_EIT_image, plot_EIT_image
+from eit_model.plot import format_inputs, plot_2D_EIT_image
 from eit_model.solver_abc import Solver
 from typing import Any
 from eit_model.data import EITData, EITImage
@@ -160,5 +160,5 @@ if __name__ == '__main__':
     rec= solver.solve_rec(v)
 
     fig, ax = plt.subplots(1,1)
-    plot_EIT_image(fig, ax, rec)
+    plot_2D_EIT_image(fig, ax, rec)
     plt.show()
