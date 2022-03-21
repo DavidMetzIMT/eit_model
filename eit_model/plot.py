@@ -328,35 +328,35 @@ class EITImage2DPlot(EITCustomPlots):
 #         ax (axes): [description]
 #         image (ImageEIT): [description]
 #         show (list[bool], optional): [description]. Defaults to [True*4].
-#     """    
+# #     """    
     
-#     tri, pts, data= get_elem_nodal_data(image.fem, image.data)
+# #     tri, pts, data= get_elem_nodal_data(image.fem, image.data)
 
-#     key= 'elems_data'
-#     perm=np.real(data[key])
-#     if np.all(perm <= 1) and np.all(perm > 0):
-#         colorbar_range=[0,1]
-#         title= image.label +'\nNorm conduct'
-#     else:
-#         title= image.label +'\nConduct'
-#     im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
-#     # ax.axis("equal")
-#     # fig.set_tight_layout(True)
-#     # ax.margins(x=0.0, y=0.0)
-#     ax.set_aspect('equal', 'box')
-#     # ax.set_xlim(-1, 1)
-#     # ax.set_ylim(-1, 1)
-#     # ax.axis('off')
-#     if show[0]:
-#         ax.set_title(title)
-#     if show[1]:
-#         ax.axis('on')
-#         ax.set_xlabel("X axis")
-#     if show[2]:
-#         ax.set_ylabel("Y axis")
-#     if show[3]:    
-#         fig.colorbar(im,ax=ax)
-#     return fig, ax, im
+# #     key= 'elems_data'
+# #     perm=np.real(data[key])
+# #     if np.all(perm <= 1) and np.all(perm > 0):
+# #         colorbar_range=[0,1]
+# #         title= image.label +'\nNorm conduct'
+# #     else:
+# #         title= image.label +'\nConduct'
+# #     im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
+# #     # ax.axis("equal")
+# #     # fig.set_tight_layout(True)
+# #     # ax.margins(x=0.0, y=0.0)
+# #     ax.set_aspect('equal', 'box')
+# #     # ax.set_xlim(-1, 1)
+# #     # ax.set_ylim(-1, 1)
+# #     # ax.axis('off')
+# #     if show[0]:
+# #         ax.set_title(title)
+# #     if show[1]:
+# #         ax.axis('on')
+# #         ax.set_xlabel("X axis")
+# #     if show[2]:
+# #         ax.set_ylabel("Y axis")
+# #     if show[3]:    
+# #         fig.colorbar(im,ax=ax)
+# #     return fig, ax, im
     
 # def plot_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> None:
 #     """[summary]
@@ -405,51 +405,51 @@ class EITImage2DPlot(EITCustomPlots):
 #     return fig, ax, im
 
 
-# def plot_2D_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> Tuple[figure.Figure,axes.Axes] :
-#     """[summary]
+def plot_2D_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> Tuple[figure.Figure,axes.Axes] :
+    """[summary]
 
-#     Args:
-#         fig (figure): [description]
-#         ax (axes): [description]
-#         image (ImageEIT): [description]
-#         show (list[bool], optional): [description]. Defaults to [True*4].
-#     """    
-#     if colorbar_range is None:
-#         colorbar_range=[None, None]
+    Args:
+        fig (figure): [description]
+        ax (axes): [description]
+        image (ImageEIT): [description]
+        show (list[bool], optional): [description]. Defaults to [True*4].
+    """    
+    if colorbar_range is None:
+        colorbar_range=[None, None]
 
-#     pts, tri, data = image.get_data_for_plot()
-#     # tri, pts, data= check_plot_data(pts, tri, data)
+    pts, tri, data = image.get_data_for_plot()
+    # tri, pts, data= check_plot_data(pts, tri, data)
 
-#     key= 'elems_data' # plot only Element data
-#     perm=np.real(data)
+    key= 'elems_data' # plot only Element data
+    perm=np.real(data)
 
-#     if np.all(perm <= 1) and np.all(perm > 0):
-#         colorbar_range=[0,1]
-#         title= image.label +'\nNorm conduct'
-#     else:
-#         title= image.label +'\nConduct'
-#     im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
+    if np.all(perm <= 1) and np.all(perm > 0):
+        colorbar_range=[0,1]
+        title= image.label +'\nNorm conduct'
+    else:
+        title= image.label +'\nConduct'
+    im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
     
-#     fig, ax= add_elec_numbers(fig, ax, image)
+    fig, ax= add_elec_numbers(fig, ax, image)
 
     
-#     # ax.axis("equal")
-#     # fig.set_tight_layout(True)
-#     # ax.margins(x=0.0, y=0.0)
-#     ax.set_aspect('equal', 'box')
-#     # ax.set_xlim(-1, 1)
-#     # ax.set_ylim(-1, 1)
-#     # ax.axis('off')
-#     if show[0]:
-#         ax.set_title(title)
-#     if show[1]:
-#         ax.axis('on')
-#         ax.set_xlabel("X axis")
-#     if show[2]:
-#         ax.set_ylabel("Y axis")
-#     if show[3]:    
-#         fig.colorbar(im,ax=ax)
-#     return fig, ax
+    # ax.axis("equal")
+    # fig.set_tight_layout(True)
+    # ax.margins(x=0.0, y=0.0)
+    ax.set_aspect('equal', 'box')
+    # ax.set_xlim(-1, 1)
+    # ax.set_ylim(-1, 1)
+    # ax.axis('off')
+    if show[0]:
+        ax.set_title(title)
+    if show[1]:
+        ax.axis('on')
+        ax.set_xlabel("X axis")
+    if show[2]:
+        ax.set_ylabel("Y axis")
+    if show[3]:    
+        fig.colorbar(im,ax=ax)
+    return fig, ax
 
 # def set_plot_labels(fig:figure.Figure, ax:axes.Axes, label):
 
