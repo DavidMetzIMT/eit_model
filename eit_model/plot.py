@@ -11,7 +11,13 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from matplotlib.figure import Figure
 from dataclasses import dataclass, field
-from eit_model.data import EITData, EITImage
+from eit_model.data import EITData, EITImage, EITMeasMonitoring
+import logging
+import numpy as np
+import pandas as pd
+# from eit_model.model import EITModel
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 logger = logging.getLogger(__name__)
@@ -72,6 +78,7 @@ class EITPlotsType(Enum):
     U_plot = "U_plot"
     Ch_plot = "Ch_plot"
     U_plot_diff = "U_plot_diff"
+    MeasErrorPlot= "MeasErrorPlot"
 
 
 class EITCustomPlots(ABC):
@@ -140,6 +147,39 @@ class EITUPlotDiff(EITCustomPlots):
             legend = ax.legend(loc="upper left")
 
         return fig, ax
+
+
+    
+class MeasErrorPlot(EITCustomPlots):
+    """TODO"""
+
+    def _post_init_(self):
+        """Custom initialization"""
+        self.type=EITPlotsType.MeasErrorPlot  
+
+    def plot(self, fig:figure.Figure, ax:axes.Axes, data:EITMeasMonitoring, labels:CustomLabels=None, options:Any=None) -> Tuple[figure.Figure,axes.Axes]:
+        """Plot"""
+
+        if labels is None or not isinstance(labels, CustomLabels):
+            labels= CustomLabels("Voltages", ["frame-ref", ""], ["Measurement #", "Voltages in [V]"])
+
+        df = pd.DataFrame(data.volt_frame, )
+        df = df.applymap(filter_value)
+        dfm = df.reset_index().melt('index', var_name='frames',  value_name='vals')
+        dfm['index'] = dfm['index'].apply(lambda x: x % 16 + 1)
+        
+        df_plot = dfm.loc[dfm['vals'] == 1]
+        # fig, ax = plt.subplots()
+        fig = sns.histplot(x="frames", y="index", data=df_plot, bins=100,cbar=True)
+        return fig
+
+
+    
+
+def filter_value(x):
+    return 1 if np.abs(x) < 0.5 else 0
+
+
 
 class EITImage2DPlot(EITCustomPlots):
     """TODO"""
@@ -405,51 +445,51 @@ class EITImage2DPlot(EITCustomPlots):
 #     return fig, ax, im
 
 
-def plot_2D_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> Tuple[figure.Figure,axes.Axes] :
-    """[summary]
+# def plot_2D_EIT_image(fig:figure.Figure, ax:axes.Axes, image:EITImage, show:list[bool]=[True] * 4, colorbar_range:list[int]=None)-> Tuple[figure.Figure,axes.Axes] :
+#     """[summary]
 
-    Args:
-        fig (figure): [description]
-        ax (axes): [description]
-        image (ImageEIT): [description]
-        show (list[bool], optional): [description]. Defaults to [True*4].
-    """    
-    if colorbar_range is None:
-        colorbar_range=[None, None]
+#     Args:
+#         fig (figure): [description]
+#         ax (axes): [description]
+#         image (ImageEIT): [description]
+#         show (list[bool], optional): [description]. Defaults to [True*4].
+#     """    
+#     if colorbar_range is None:
+#         colorbar_range=[None, None]
 
-    pts, tri, data = image.get_data_for_plot()
-    # tri, pts, data= check_plot_data(pts, tri, data)
+#     pts, tri, data = image.get_data_for_plot()
+#     # tri, pts, data= check_plot_data(pts, tri, data)
 
-    key= 'elems_data' # plot only Element data
-    perm=np.real(data)
+#     key= 'elems_data' # plot only Element data
+#     perm=np.real(data)
 
-    if np.all(perm <= 1) and np.all(perm > 0):
-        colorbar_range=[0,1]
-        title= image.label +'\nNorm conduct'
-    else:
-        title= image.label +'\nConduct'
-    im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
+#     if np.all(perm <= 1) and np.all(perm > 0):
+#         colorbar_range=[0,1]
+#         title= image.label +'\nNorm conduct'
+#     else:
+#         title= image.label +'\nConduct'
+#     im = ax.tripcolor(pts[:,0], pts[:,1], tri, perm, shading='flat', vmin=colorbar_range[0],vmax=colorbar_range[1])
     
-    fig, ax= add_elec_numbers(fig, ax, image)
+#     fig, ax= add_elec_numbers(fig, ax, image)
 
     
-    # ax.axis("equal")
-    # fig.set_tight_layout(True)
-    # ax.margins(x=0.0, y=0.0)
-    ax.set_aspect('equal', 'box')
-    # ax.set_xlim(-1, 1)
-    # ax.set_ylim(-1, 1)
-    # ax.axis('off')
-    if show[0]:
-        ax.set_title(title)
-    if show[1]:
-        ax.axis('on')
-        ax.set_xlabel("X axis")
-    if show[2]:
-        ax.set_ylabel("Y axis")
-    if show[3]:    
-        fig.colorbar(im,ax=ax)
-    return fig, ax
+#     # ax.axis("equal")
+#     # fig.set_tight_layout(True)
+#     # ax.margins(x=0.0, y=0.0)
+#     ax.set_aspect('equal', 'box')
+#     # ax.set_xlim(-1, 1)
+#     # ax.set_ylim(-1, 1)
+#     # ax.axis('off')
+#     if show[0]:
+#         ax.set_title(title)
+#     if show[1]:
+#         ax.axis('on')
+#         ax.set_xlabel("X axis")
+#     if show[2]:
+#         ax.set_ylabel("Y axis")
+#     if show[3]:    
+#         fig.colorbar(im,ax=ax)
+#     return fig, ax
 
 # def set_plot_labels(fig:figure.Figure, ax:axes.Axes, label):
 
@@ -481,7 +521,15 @@ if __name__ == "__main__":
     glob_utils.log.log.main_log()
 
     print()
-    print([True for _ in range(4)])
+    print([True for _ in range(4)])#
+
+    p=MeasErrorPlot()
+    v=np.array([])
+    d=EITMeasMonitoring(volt_frame=v)
+
+    fig, ax = plt.subplots(1,1)
+    p.plot(fig, ax, d)  
+    plt.show()
 
     
     

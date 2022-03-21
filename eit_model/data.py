@@ -17,6 +17,10 @@ class EITData(object):
     @property
     def frame(self)-> np.ndarray:
         return self.meas[:,1]
+    
+    @property
+    def ds(self)-> np.ndarray:
+        return self.meas[:,2]
 
 
 class EITImage(object):
@@ -43,6 +47,15 @@ class EITImage(object):
         """
         return self.fem['nodes'],self.fem['elems'], self.data
 
+@dataclass
+class EITMeasMonitoring(object):
+    """_summary_
+    
+    volt_frame= ndarray of schape (n_exc, n_frames)
+
+    """
+    volt_frame:np.ndarray=np.array([])
+    frame_idx:list[int]=None
 
 
 if __name__ == '__main__':

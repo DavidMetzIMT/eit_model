@@ -100,12 +100,15 @@ class Imaging(ABC):
         meas_voltages = self.transform_voltages(v_ref, v_meas, eit_model)
         return EITData(meas_voltages), self.make_labels()
 
+    # @abstractmethod
     def transform_voltages(self, v_ref:np.ndarray, v_frame:np.ndarray, eit_model: EITModel) -> List[np.ndarray]:
         """"""
         return np.hstack(
             (
                 make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel),
                 make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel),
+                make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel) - make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel)
+
             )
         )
 
@@ -145,6 +148,17 @@ class AbsoluteImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "U"
+    
+    def transform_voltages(self, v_ref:np.ndarray, v_frame:np.ndarray, eit_model: EITModel) -> List[np.ndarray]:
+        """"""
+        return np.hstack(
+            (
+                make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel),
+                make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel),
+                make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel)
+
+            )
+        )
 
     def make_labels(self) -> dict:
 
@@ -175,6 +189,17 @@ class TimeDifferenceImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "\u0394U_t"  # ΔU_t
+    
+    # def transform_voltages(self, v_ref:np.ndarray, v_frame:np.ndarray, eit_model: EITModel) -> List[np.ndarray]:
+    #     """"""
+    #     return np.hstack(
+    #         (
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel),
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel),
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel) - make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel)
+
+    #         )
+    #     )
 
     def make_labels(self):
 
@@ -205,6 +230,17 @@ class FrequenceDifferenceImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "\u0394U_f"  # ΔU_f
+    
+    # def transform_voltages(self, v_ref:np.ndarray, v_frame:np.ndarray, eit_model: EITModel) -> List[np.ndarray]:
+    #     """"""
+    #     return np.hstack(
+    #         (
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel),
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel),
+    #             make_voltage_vector(eit_model, self.transform_funcs, v_frame, self.get_channel) - make_voltage_vector(eit_model, self.transform_funcs, v_ref, self.get_channel)
+
+    #         )
+    #     )
 
     def make_labels(self):
 
@@ -231,7 +267,6 @@ class FrequenceDifferenceImaging(Imaging):
                 ["Measurements", "Voltages in [V]"],
             )
         }
-
 
 
 class ChannelVoltageImaging(Imaging):
