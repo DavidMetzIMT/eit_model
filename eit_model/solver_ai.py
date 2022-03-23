@@ -1,6 +1,7 @@
+from posixpath import dirname
+from matplotlib.pyplot import plot
 import numpy as np
 from eit_model.model import EITModel
-from eit_model.plot import format_inputs, plot_2D_EIT_image
 from eit_model.solver_abc import Solver
 from typing import Any
 from eit_model.data import EITData, EITImage
@@ -18,7 +19,7 @@ logger = getLogger(__name__)
 
 @dataclass
 class AiRecParams:
-    model_dirpath: str = ""
+    model_dirpath: str = ''
     normalize: bool = False
 
 
@@ -30,7 +31,7 @@ class SolverAi(Solver):
         self.fwd_model: dict = None
         self.params = AiRecParams()
 
-    def _custom_preparation(self, params: AiRecParams = "") -> tuple[EITImage, EITData]:
+    def _custom_preparation(self, params: Any = None) -> tuple[EITImage, EITData]:
         """Custom preparation of the solver to be ready for reconstruction
 
         Returns:
@@ -41,7 +42,7 @@ class SolverAi(Solver):
         """
         logger.info("Preparation of Ai reconstruction: Start...")
 
-        sim_data = self.initialize(params)
+        sim_data = self.initialize(params=self.params)
         img_rec = self.rec(sim_data)
         logger.info("Preparation of Ai reconstruction: Done")
         return img_rec, sim_data
@@ -84,9 +85,9 @@ class SolverAi(Solver):
         )
         logger.debug(f"{perm_real= }, {perm_real.shape}")
 
-        perm = format_inputs(self.fwd_model, perm_real)
+        # perm = format_inputs(self.fwd_model, perm_real)
 
-        logger.debug(f"perm shape = {perm.shape}")
+        # logger.debug(f"perm shape = {perm.shape}")
         init_data = self.eit_model.build_meas_data(
             voltages[2], voltages[2], "solved data"
         )
@@ -118,32 +119,58 @@ class SolverAi(Solver):
     def preprocess(self, data: EITData) -> np.ndarray:
 
         return data.ds / data.ref_frame if self.params.normalize else data.ds
+    
+    def set_params(self, params: AiRecParams = None) -> None:
+        """Set the reconstrustions parameters for each inverse solver type
+
+        Args:
+            rec_params (PyEitRecParams, optional): reconstruction parameters
+            used to set the inverse solver. If `None` default or precedents
+            values will be used. Defaults to `None`.
+        """
+        if isinstance(params, AiRecParams):
+            # test if new parameters have been transmitted if not  and if
+            # inv_solver already ready quit
+            isnew_params = self.params.__dict__ != params.__dict__
+            if self.ready.is_set() and not isnew_params:
+                return
+            # otherwise set new parameters
+            self.params = params
+
+        self.ready.set()
 
 
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
     import glob_utils.files.matlabfile
-    from eit_model.plot import plot_2D_EIT_image
+    from eit_model.plot import EITImage2DPlot
 
     import glob_utils.files.files
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()
 
+    file_path = r'C:\Users\ryanzzzjw\Desktop\eit_model\eit_model\default\\2D_Dataset_infos2py.mat'
     eit_mdl = EITModel()
-    eit_mdl.load_defaultmatfile()
+    eit_mdl.load_matfile(file_path=file_path)
 
     solver = SolverAi(eit_mdl)
     img_rec, data_sim = solver.prepare_rec()
 
-    ref = np.random.randn(1, 256)
-    frame = np.random.randn(1, 256)
-    v = eit_mdl.build_meas_data(ref, frame)
+    ref = np.random.randn(256, 1)
+    frame = np.random.randn(256, 1)
+    ds = ref - frame
+    data_array = np.hstack([ref, frame, ds])
+    v = EITData(data_array)
+    # print(v)
+    # v = eit_mdl.build_meas_data(ref, frame)
     # img = eit_mdl.build_img(v, 'rec')
     # print(v)
     rec = solver.rec(v)
 
+    logger.debug(f'rec shape = {rec.data.shape}')
+    p = EITImage2DPlot()
     fig, ax = plt.subplots(1, 1)
-    plot_2D_EIT_image(fig, ax, rec)
+    p.plot(fig, ax, rec)
     plt.show()
