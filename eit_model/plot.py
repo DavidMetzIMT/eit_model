@@ -179,7 +179,7 @@ class EITUPlotDiff(EITCustomPlots):
 
 
 class MeasErrorPlot(EITCustomPlots):
-    """TODO"""
+    """This function is used to detect the small values which occurs during the real measurement."""
 
     def _post_init_(self):
         """Custom initialization"""
@@ -209,12 +209,15 @@ class MeasErrorPlot(EITCustomPlots):
 
         df_plot = dfm.loc[dfm["vals"] == 1]
         # fig, ax = plt.subplots()
-        fig = sns.histplot(x="frames", y="index", data=df_plot, bins=100, cbar=True)
-        return fig
+        ax = sns.histplot(x="frames", y="index", data=df_plot, bins=100, cbar=True, cmap = 'coolwarm')
+        ax.set_xlabel("frame")
+        ax.set_ylabel("channel voltage")
+        return fig, ax
 
 
 def filter_value(x):
-    return 1 if np.abs(x) < 0.5 else 0
+    return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
+    # return 1 if np.abs(x) < 0.00001 else 0
 
 
 class EITImage2DPlot(EITCustomPlots):
@@ -250,9 +253,11 @@ class EITImage2DPlot(EITCustomPlots):
 
         pts, tri, data = image.get_data_for_plot()
         # tri, pts, data= check_plot_data(pts, tri, data)
+        logger.debug(f'pts shape = {pts.shape}, tri shape = {tri.shape}')
 
         key = "elems_data"  # plot only Element data
         perm = np.real(data)
+        logger.debug(f'perm shape = {perm.shape}')
 
         if np.all(perm <= 1) and np.all(perm > 0):
             colorbar_range = [0, 1]
@@ -569,7 +574,7 @@ if __name__ == "__main__":
     print([True for _ in range(4)])  #
 
     p = MeasErrorPlot()
-    v = np.array([])
+    v = np.random.randn(256, 9)
     d = EITMeasMonitoring(volt_frame=v)
 
     fig, ax = plt.subplots(1, 1)

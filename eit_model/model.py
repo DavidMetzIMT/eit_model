@@ -230,7 +230,7 @@ class EITModel(object):
     ) -> EITData:
         """"""
         # TODO  mk som test on the shape of the inputs
-        meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1))))
+        meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1)), np.reshape((frame - ref), (-1, 1))))
         return EITData(meas, label)
 
 
