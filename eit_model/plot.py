@@ -201,12 +201,13 @@ class MeasErrorPlot(EITCustomPlots):
             )
 
         # TODO
-        # volt_frame >list
+        # volt_frame > dict
         # 16 from volt_frame 
         # abs of volt_frame
-
-        df = pd.DataFrame(
-            data.volt_frame,
+        data.volt_frame = {k: v.flatten().real for k, v in data.volt_frame.items()}
+        
+        df = pd.DataFrame.from_dict(
+            data.volt_frame, orient='columns'
         )
         df = df.applymap(filter_value)
         dfm = df.reset_index().melt("index", var_name="frames", value_name="vals")
@@ -221,6 +222,7 @@ class MeasErrorPlot(EITCustomPlots):
 
 
 def filter_value(x):
+        # x = np.linalg.norm(x)   # mag
     return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
     # return 1 if np.abs(x) < 0.00001 else 0
 
@@ -580,8 +582,12 @@ if __name__ == "__main__":
 
     p = MeasErrorPlot()
     # v = np.random.randn(256, 9)
-    v = np.random.randn(16, 16)
-    d = EITMeasMonitoring(volt_frame={1:v, 2:v})
+    v1 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
+    v2 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
+    v3 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
+    
+    # d = EITMeasMonitoring(volt_frame={1:v1})
+    d = EITMeasMonitoring(volt_frame={1:v1, 2:v2, 3:v3})
 
     fig, ax = plt.subplots(1, 1)
     p.plot(fig, ax, d)
