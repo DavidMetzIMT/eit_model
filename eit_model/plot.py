@@ -200,6 +200,11 @@ class MeasErrorPlot(EITCustomPlots):
                 "Voltages", ["frame-ref", ""], ["Measurement #", "Voltages in [V]"]
             )
 
+        # TODO
+        # volt_frame >list
+        # 16 from volt_frame 
+        # abs of volt_frame
+
         df = pd.DataFrame(
             data.volt_frame,
         )
@@ -574,8 +579,9 @@ if __name__ == "__main__":
     print([True for _ in range(4)])  #
 
     p = MeasErrorPlot()
-    v = np.random.randn(256, 9)
-    d = EITMeasMonitoring(volt_frame=v)
+    # v = np.random.randn(256, 9)
+    v = np.random.randn(16, 16)
+    d = EITMeasMonitoring(volt_frame={1:v, 2:v})
 
     fig, ax = plt.subplots(1, 1)
     p.plot(fig, ax, d)

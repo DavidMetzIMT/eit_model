@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import numpy as np
@@ -55,12 +55,16 @@ class EITImage(object):
 class EITMeasMonitoring(object):
     """_summary_
 
-    volt_frame= ndarray of schape (n_exc, n_frames)
+    volt_frame= list of ndarray of shape (n_exc, n_ch) dtype = complex
 
     """
 
-    volt_frame: np.ndarray = np.array([])
-    frame_idx: list[int] = None
+    volt_frame: dict [int, np.ndarray]= None #list[np.ndarray] = field(default_factory=[])
+    # frame_idx: list[int] = field(default_factory=[])
+
+    def add(self, volt, frame_idx):
+        self.volt_frame[frame_idx]=volt
+        # self.frame_idx.append(frame_idx)
 
 
 if __name__ == "__main__":
