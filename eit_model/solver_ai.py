@@ -2,7 +2,7 @@ from posixpath import dirname
 from matplotlib.pyplot import plot
 import numpy as np
 from eit_model.model import EITModel
-from eit_model.solver_abc import Solver
+from eit_model.solver_abc import Solver,RecParams
 from typing import Any
 from eit_model.data import EITData, EITImage
 from eit_ai.train_utils.workspace import AiWorkspace
@@ -18,7 +18,7 @@ logger = getLogger(__name__)
 
 
 @dataclass
-class AiRecParams:
+class AiRecParams(RecParams):
     model_dirpath: str = ''
     normalize: bool = False
 

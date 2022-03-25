@@ -8,6 +8,11 @@ from eit_model.model import EITModel
 import glob_utils.flags.flag
 
 
+class RecParams:
+    """Reconstruction parameter class"""
+
+
+
 class SolverNotReadyError(BaseException):
     """"""
 

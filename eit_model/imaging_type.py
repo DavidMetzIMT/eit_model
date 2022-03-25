@@ -111,7 +111,7 @@ class Imaging(ABC):
         v_meas: np.ndarray = None,
         labels=None,
         eit_model: EITModel = None,
-    ) -> Tuple[EITData, list[list[str]]]:
+    ) -> Tuple[EITData, dict[EITPlotsType, CustomLabels]]:
 
         self.get_metadata(labels)
         meas_voltages = self.transform_voltages(v_ref, v_meas, eit_model)
@@ -159,7 +159,8 @@ class Imaging(ABC):
             self.label_meas = [f"||{lab}||" for lab in self.label_meas]
 
     @abstractmethod
-    def make_labels(self, metadata):
+    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
+
         """"""
 
     # def check_data(self, idx_frames_len, freqs_val_len):
@@ -196,7 +197,7 @@ class AbsoluteImaging(Imaging):
             )
         )
 
-    def make_labels(self) -> dict:
+    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         # self.check_data(1, 1)
 
@@ -235,8 +236,7 @@ class TimeDifferenceImaging(Imaging):
 
     #         )
     #     )
-
-    def make_labels(self):
+    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         # self.check_data(2, 1)
 
@@ -279,8 +279,7 @@ class FrequenceDifferenceImaging(Imaging):
 
     #         )
     #     )
-
-    def make_labels(self):
+    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         # self.check_data(1, 2)
 
@@ -315,8 +314,7 @@ class ChannelVoltageImaging(Imaging):
         """Custom initialization"""
         self.label_imaging = "U_ch"
         self.get_channel = True
-
-    def make_labels(self):
+    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         # self.check_data(1, 2)
 

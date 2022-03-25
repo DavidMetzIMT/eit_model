@@ -13,7 +13,7 @@ import pyeit.mesh.shape
 from eit_model.data import EITData, EITImage
 
 from eit_model.model import EITModel
-from eit_model.solver_abc import Solver
+from eit_model.solver_abc import Solver, RecParams
 from pyeit.eit.base import EitBase
 from pyeit.eit.fem import Forward
 
@@ -23,7 +23,7 @@ INV_SOLVER_PYEIT = {"JAC": jac.JAC, "BP": bp.BP, "GREIT": greit.GREIT}
 
 
 @dataclass
-class PyEitRecParams:
+class PyEitRecParams(RecParams):
     solver_type: str = next(iter(INV_SOLVER_PYEIT))
     p: float = 0.5
     lamb: float = 0.001
