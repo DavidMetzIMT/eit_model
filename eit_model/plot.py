@@ -200,10 +200,8 @@ class MeasErrorPlot(EITCustomPlots):
                 "Voltages", ["frame-ref", ""], ["Measurement #", "Voltages in [V]"]
             )
 
-        # TODO
-        # volt_frame > dict
-        # 16 from volt_frame 
-        # abs of volt_frame
+
+        ch = data.volt_frame[1].shape[0] #channel numbers, 16
         data.volt_frame = {k: v.flatten().real for k, v in data.volt_frame.items()}
         
         df = pd.DataFrame.from_dict(
@@ -211,7 +209,7 @@ class MeasErrorPlot(EITCustomPlots):
         )
         df = df.applymap(filter_value)
         dfm = df.reset_index().melt("index", var_name="frames", value_name="vals")
-        dfm["index"] = dfm["index"].apply(lambda x: x % 16 + 1)
+        dfm["index"] = dfm["index"].apply(lambda x: x % ch + 1)
 
         df_plot = dfm.loc[dfm["vals"] == 1]
         # fig, ax = plt.subplots()
