@@ -55,7 +55,7 @@ class EITImage(object):
 class EITMeasMonitoring(object):
     """_summary_
 
-    volt_frame= list of ndarray of shape (n_exc, n_ch) dtype = complex
+    volt_frame= dict of ndarray of shape (n_exc, n_ch) dtype = complex
 
     """
 
