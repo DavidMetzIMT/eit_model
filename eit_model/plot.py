@@ -200,29 +200,30 @@ class MeasErrorPlot(EITCustomPlots):
                 "Voltages", ["frame-ref", ""], ["Measurement #", "Voltages in [V]"]
             )
 
+        first= list(data.volt_frame.keys())[0]
+        ch = data.volt_frame[first].shape[0] #channel numbers, 16
 
-        ch = data.volt_frame[1].shape[0] #channel numbers, 16
-        data.volt_frame = {k: v.flatten().real for k, v in data.volt_frame.items()}
+        volt_frame = {k: v.flatten().real for k, v in data.volt_frame.items()}
         
         df = pd.DataFrame.from_dict(
-            data.volt_frame, orient='columns'
+            volt_frame, orient='columns'
         )
         df = df.applymap(filter_value)
         dfm = df.reset_index().melt("index", var_name="frames", value_name="vals")
         dfm["index"] = dfm["index"].apply(lambda x: x % ch + 1)
 
-        df_plot = dfm.loc[dfm["vals"] == 1]
+        df_plot = dfm.loc[dfm["vals"] ==1]
         # fig, ax = plt.subplots()
         ax = sns.histplot(x="frames", y="index", data=df_plot, bins=100, cbar=True, cmap = 'coolwarm')
-        ax.set_xlabel("frame")
+        # ax.set_xlabel("frame")
         ax.set_ylabel("channel voltage")
         return fig, ax
 
 
 def filter_value(x):
         # x = np.linalg.norm(x)   # mag
-    return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
-    # return 1 if np.abs(x) < 0.00001 else 0
+    # return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
+    return 1 if np.abs(x) < 0.00001 else 0
 
 
 class EITImage2DPlot(EITCustomPlots):

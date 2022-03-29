@@ -59,7 +59,7 @@ class EITMeasMonitoring(object):
 
     """
 
-    volt_frame: dict [int, np.ndarray]= None #list[np.ndarray] = field(default_factory=[])
+    volt_frame: dict [int, np.ndarray]= field(default_factory=dict) #list[np.ndarray] 
     # frame_idx: list[int] = field(default_factory=[])
 
     def add(self, volt, frame_idx):

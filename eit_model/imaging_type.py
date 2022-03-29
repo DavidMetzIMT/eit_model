@@ -23,6 +23,8 @@ DATA_TRANSFORMATIONS = {
 }
 
 
+
+
 def make_voltage_vector(
     eit_model: EITModel,
     transform_funcs: list,
@@ -34,7 +36,7 @@ def make_voltage_vector(
     Args:
         eit_model (EITModel): _description_
         transform_funcs (list): _description_
-        voltages (np.ndarray): _description_
+        voltages (np.ndarray): shape(n_exc, n_channel)
 
     Returns:
         np.ndarray: _description_
@@ -45,10 +47,11 @@ def make_voltage_vector(
     meas_voltage = voltages[:, : eit_model.n_elec]
     # get the volgate corresponding to the meas_pattern and flatten
     meas = (
-        eit_model.meas_pattern(0).dot(meas_voltage.T).flatten()
-        if not get_ch
-        else meas_voltage.flatten()
+        meas_voltage.flatten()
+        if get_ch
+        else eit_model.meas_pattern(0).dot(meas_voltage.T).flatten()
     )
+
 
     return transform(meas, transform_funcs)
 
