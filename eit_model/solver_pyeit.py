@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 INV_SOLVER_PYEIT = {"JAC": jac.JAC, "BP": bp.BP, "GREIT": greit.GREIT}
 
+def used_solver()->list[str]:
+    return list(INV_SOLVER_PYEIT.keys())
+
 
 @dataclass
 class PyEitRecParams(RecParams):
@@ -32,6 +35,7 @@ class PyEitRecParams(RecParams):
     method: str = "kotre"
     weight: str = "none"
     parser: str = "meas_current"
+    background:float = 1.0
 
 
 class InvSolverNotReadyError(BaseException):

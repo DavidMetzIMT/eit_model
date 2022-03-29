@@ -341,5 +341,12 @@ IMAGING_TYPE = {
     "Frequence difference imaging": FrequenceDifferenceImaging,
 }
 
+
+def eit_imaging_types()->list[str]:
+    return list(IMAGING_TYPE.keys())
+
+def eit_data_transformations()->list[str]:
+    return list(DATA_TRANSFORMATIONS.keys())[:4]
+
 if __name__ == "__main__":
     """"""
