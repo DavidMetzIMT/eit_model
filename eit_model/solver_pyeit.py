@@ -155,7 +155,7 @@ class SolverPyEIT(Solver):
         if not isinstance(image, EITImage):
             raise TypeError("EITImage expected")
 
-        ex_mat = self.eit_model.excitation_mat()
+        ex_mat = self.eit_model.get_pyeit_ex_mat()
 
         f = self.fwd_solver.solve_eit(
             ex_mat, step=1, perm=image.data, parser=self.params.parser
@@ -229,7 +229,7 @@ class SolverPyEIT(Solver):
         par_tmp = {
             "mesh": mesh,
             "el_pos": indx_elec,
-            "ex_mat": self.eit_model.excitation_mat(),
+            "ex_mat": self.eit_model.get_pyeit_ex_mat(),
             "step": 1,
             "perm": 1.0,
             "jac_normalized": False,

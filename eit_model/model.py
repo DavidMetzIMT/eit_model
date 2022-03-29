@@ -206,7 +206,7 @@ class EITModel(object):
         """Return the excitaion matrix
 
            ex_mat[i,:]=[elec#IN, elec#OUT]
-           electrode numbering with base 1
+           electrode numbering with 1 based indexing
 
         Returns:
             np.ndarray: array like of shape (n_elec, 2)
@@ -219,13 +219,17 @@ class EITModel(object):
         the pins will be corrected as defined in the chip design txt file
 
            ex_mat[i,:]=[elec#IN, elec#OUT]
-           electrode numbering with base 1
+           electrode numbering with 1 based indexing
 
         Returns:
             np.ndarray: array like of shape (n_elec, 2)
         """
         return self.chip_trans_pins.transform_exc(self.fwd_model.ex_mat())
 
+    def get_pyeit_ex_mat(self)-> np.ndarray:
+        """Return the excitaion matrix for pyeit which has to be 
+        0 based indexing"""
+        return self.excitation_mat()-1
     @property
     def bbox(self) -> np.ndarray:
         """Return the mesh /chamber limits as ndarray

@@ -106,7 +106,7 @@ class FwdModel:
         """Return the excitaion matrix
 
            ex_mat[i,:]=[elec#IN, elec#OUT]
-           electrode numbering with base 1
+           electrode numbering with 1 based indexing
 
         Returns:
             np.ndarray: array like of shape (n_elec, 2)
