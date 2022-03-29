@@ -6,10 +6,63 @@ import eit_model.setup
 import eit_model.fwd_model
 import glob_utils.files.matlabfile
 import glob_utils.args.check_type
+from scipy.sparse import csr_matrix
 
 ## ======================================================================================================================================================
 ##
 ## ======================================================================================================================================================
+
+class ChipTranslatePins(object):
+ 
+    chip_trans_mat:np.ndarray # shape (n_elec, 2)
+    trans_mat:np.ndarray
+
+    def __init__(self) -> None:
+        dirname = os.path.dirname(__file__)
+        path = os.path.join(dirname, "default", "Chip_Ring_e16_17-32.txt")
+        self.load(path)  
+        self.build_trans_mat()                  
+    
+    def load(self, path):
+        # TODO verify the fiste colum schould be 1-N
+        self.chip_trans_mat = np.loadtxt(path, dtype=int)
+        print(f"{self.chip_trans_mat=}")
+
+    def transform_exc(self, exc_pattern:np.ndarray )->np.ndarray:
+
+        o_num = self.chip_trans_mat[:, 0]  # Channel number
+        print(f"{o_num=}")
+        n_num = self.chip_trans_mat[:, 1]  # corresonpint chip pads
+        print(f"{n_num=}")
+        new_pattern = np.array(exc_pattern)
+        old = np.array(exc_pattern)
+        for n in range(o_num.size):
+            new_pattern[old == o_num[n]] = n_num[n]
+
+        return new_pattern
+    
+    def transform_meas(self, meas_pattern:np.ndarray)->np.ndarray:
+
+        return meas_pattern * self.trans_mat
+    
+    def build_trans_mat(self):
+        n_elec=self.chip_trans_mat.shape[0]
+        self.trans_mat=np.zeros((n_elec,n_elec))
+        row = np.array(self.chip_trans_mat[:,0].flatten()-1)
+        col = np.array(self.chip_trans_mat[:,1].flatten()-1)
+        data = np.ones(n_elec)
+        print(row, col, data, n_elec)
+        print(row.shape, col.shape, data.shape, n_elec)
+
+        self.trans_mat=csr_matrix((data,(row, col)), dtype=int).toarray()
+
+        print(f"{self.trans_mat=}")
+
+
+    
+
+
+
 
 
 class EITModel(object):
@@ -21,6 +74,10 @@ class EITModel(object):
     """
 
     name: str = "EITModel_defaultName"
+    setup:eit_model.setup.EITSetup
+    fwd_model:eit_model.fwd_model.FwdModel
+    fem:eit_model.fwd_model.FEModel
+    
 
     def __init__(self):
         # self.Name = 'EITModel_defaultName'
@@ -45,9 +102,19 @@ class EITModel(object):
         self.setup = eit_model.setup.EITSetup()
         self.fwd_model = eit_model.fwd_model.FwdModel()
         self.fem = eit_model.fwd_model.FEModel()
+        self.chip_trans_pins= ChipTranslatePins()
+        self.load_default_chip_trans()
 
     def set_solver(self, solver_type):
         self.SolverType = solver_type
+    
+    def load_chip_trans(self, path:str):
+        self.chip_trans_pins.load(path)
+
+    def load_default_chip_trans(self):
+        dirname = os.path.dirname(__file__)
+        path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
+        self.chip_trans_pins.load(path)
 
     def load_defaultmatfile(self):
         dirname = os.path.dirname(__file__)
@@ -80,26 +147,6 @@ class EITModel(object):
         self.fem = eit_model.fwd_model.FEModel(
             **self.fwd_model.for_FEModel(), **self.setup.for_FEModel()
         )
-
-    def translate_inj_pattern_4_chip(self, path=None):
-        if path:
-            self.ChipPins = np.loadtxt(path)
-        else:
-            # path= os.path.join(DEFAULT_DIR,DEFAULT_ELECTRODES_CHIP_RING)
-            # self.ChipPins=np.loadtxt(path)
-            """"""
-
-        # test if load data are compatible...
-        # todo..
-
-        o_num = self.ChipPins[:, 0]  # Channel number
-        n_num = self.ChipPins[:, 1]  # corresonpint chip pads
-        new = np.array(self.InjPattern)
-        old = np.array(self.InjPattern)
-        for n in range(o_num.size):
-            new[old == o_num[n]] = n_num[n]
-
-        self.InjPattern = new  # to list???
 
     @property
     def refinement(self):
@@ -159,11 +206,25 @@ class EITModel(object):
         """Return the excitaion matrix
 
            ex_mat[i,:]=[elec#IN, elec#OUT]
+           electrode numbering with base 1
 
         Returns:
             np.ndarray: array like of shape (n_elec, 2)
         """
         return self.fwd_model.ex_mat()
+
+    def excitation_mat_chip(self) -> np.ndarray:
+        """Return the excitaion matrix for the chip selected
+        
+        the pins will be corrected as defined in the chip design txt file
+
+           ex_mat[i,:]=[elec#IN, elec#OUT]
+           electrode numbering with base 1
+
+        Returns:
+            np.ndarray: array like of shape (n_elec, 2)
+        """
+        return self.chip_trans_pins.transform_exc(self.fwd_model.ex_mat())
 
     @property
     def bbox(self) -> np.ndarray:
@@ -187,7 +248,7 @@ class EITModel(object):
 
         self.setup.chamber.set_box_size(val)
 
-    def meas_pattern(self, exc_idx) -> np.ndarray:
+    def meas_pattern(self, exc_idx:int) -> np.ndarray:
         """Return the meas_pattern
 
             used to build the measurement vector
@@ -245,14 +306,28 @@ if __name__ == "__main__":
     import glob_utils.files.files
     import glob_utils.log.log
 
-    glob_utils.log.log.main_log()
+    dirname = os.path.dirname(__file__)
+    path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
+    p=  np.loadtxt(path)
+    print(p)
 
-    eit = EITModel()
-    eit.load_defaultmatfile()
+    c= ChipTranslatePins()
+    path = os.path.join(dirname, "default", "Chip_Ring_e16_17-32.txt")
+    c.load(path)
 
-    m = np.max(eit.fem.nodes, axis=0)
-    n = np.min(eit.fem.nodes, axis=0)
-    print(m, n, np.round(m - n, 1))
-    print(eit.fwd_model.electrode[1])
-    print(eit.fwd_model.electrode[1])
-    print(eit.refinement)
+    print(c.transform_exc(p))
+
+
+
+
+    # glob_utils.log.log.main_log()
+
+    # eit = EITModel()
+    # eit.load_defaultmatfile()
+
+    # m = np.max(eit.fem.nodes, axis=0)
+    # n = np.min(eit.fem.nodes, axis=0)
+    # print(m, n, np.round(m - n, 1))
+    # print(eit.fwd_model.electrode[1])
+    # print(eit.fwd_model.electrode[1])
+    # print(eit.refinement)

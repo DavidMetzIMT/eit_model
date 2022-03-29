@@ -106,6 +106,7 @@ class FwdModel:
         """Return the excitaion matrix
 
            ex_mat[i,:]=[elec#IN, elec#OUT]
+           electrode numbering with base 1
 
         Returns:
             np.ndarray: array like of shape (n_elec, 2)
@@ -115,7 +116,7 @@ class FwdModel:
             e_in = np.argmin(stim.stim_pattern)
             e_out = np.argmax(stim.stim_pattern)
             ex_mat[i, :] = [e_in, e_out]
-        return np.int_(ex_mat)
+        return np.int_(ex_mat) + 1 
 
 
 @dataclass
