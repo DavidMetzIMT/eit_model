@@ -1,12 +1,16 @@
 from dataclasses import dataclass, field
+import logging
 import numpy as np
+from scipy.sparse import spmatrix
+from scipy.linalg import block_diag
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Stimulation:
     stimulation: str = "Amperes"
-    stim_pattern: np.ndarray = None
-    meas_pattern: np.ndarray = None
+    stim_pattern: spmatrix = None
+    meas_pattern: spmatrix = None
 
 
 @dataclass
@@ -92,6 +96,24 @@ class FwdModel:
     )
     PERM_SYM: list = field(default_factory=lambda: ["n"])
 
+    def __post_init__(self):
+        self.create_meas_pattern()
+
+    def create_meas_pattern(self):
+        if self.stimulation is None:
+            return
+        
+        l= [stim.meas_pattern.toarray() for stim in self.stimulation]
+        # for i, stim in enumerate(self.stimulation):
+        #     m_pattern= stim.meas_pattern.toarray()
+        #     tmp= m_pattern if i==0 else  np.vstack((tmp, m_pattern))
+
+        # n= len(self.stimulation)
+        
+        self._meas_pattern= block_diag(*l)
+        logger.debug(f"{self._meas_pattern=}, {self._meas_pattern.shape=}")
+        
+
     def for_FEModel(self) -> dict:
 
         return {
@@ -117,6 +139,10 @@ class FwdModel:
             e_out = np.argmax(stim.stim_pattern)
             ex_mat[i, :] = [e_in, e_out]
         return np.int_(ex_mat) + 1 
+    
+    @property
+    def meas_pattern(self)->np.ndarray:
+        return self._meas_pattern
 
 
 @dataclass
