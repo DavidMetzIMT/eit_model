@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 
@@ -50,6 +50,18 @@ class EITImage(object):
         """
         return self.fem["nodes"], self.fem["elems"], self.data
 
+@dataclass
+class EITVoltMonitoring(object):
+    """_summary_
+
+    volt_frame= dict of ndarray of shape (n_exc, n_ch) dtype = complex
+
+    """
+
+    volt_ref: np.ndarray 
+    volt_frame: np.ndarray
+    labels:Any=''
+
 
 @dataclass
 class EITMeasMonitoring(object):
@@ -59,7 +71,7 @@ class EITMeasMonitoring(object):
 
     """
 
-    volt_frame: dict [int, np.ndarray]= field(default_factory=dict) #list[np.ndarray] 
+    volt_frame: dict [Any, np.ndarray]= field(default_factory=dict) #list[np.ndarray] 
     # frame_idx: list[int] = field(default_factory=[])
 
     def add(self, volt, frame_idx):
