@@ -109,47 +109,47 @@ class Imaging(ABC):
 
     def process_data(
         self,
-        v_ref: np.ndarray = None,
-        v_meas: np.ndarray = None,
-        labels=None,
+        v_ref: EITVoltage, #np.ndarray = None
+        v_meas: EITVoltage, #np.ndarray = None
+        # labels=None,
         eit_model: EITModel = None,
     ) -> Tuple[EITData,EITVoltMonitoring, dict[EITPlotsType, CustomLabels]]:
 
-        self.get_metadata(labels)
+        self.get_metadata(v_ref, v_meas)
         meas_voltages, volt_ref, volt_frame = self.transform_voltages(v_ref, v_meas, eit_model)
-        return EITData(meas_voltages, labels), EITVoltMonitoring(volt_ref, volt_frame, labels), self.make_labels()
+        return EITData(meas_voltages, self.lab_data), EITVoltMonitoring(volt_ref, volt_frame, self.lab_data), self.make_EITplots_labels()
 
     # @abstractmethod
     def transform_voltages(
-        self, v_ref: np.ndarray, v_frame: np.ndarray, eit_model: EITModel
+        self, v_ref: EITVoltage, v_meas: EITVoltage, eit_model: EITModel
     ) -> np.ndarray:
         """"""
-        meas_ref, volt_ref= eit_model.get_meas_voltages(v_ref)
-        meas_frame, volt_frame= eit_model.get_meas_voltages(v_frame)
+        meas_ref, volt_ref= eit_model.get_meas_voltages(v_ref.volt)
+        meas_meas, volt_meas= eit_model.get_meas_voltages(v_meas.volt)
 
-        meas_ref_t=transform(meas_ref, self.transform_funcs)
-        meas_frame_t=transform(meas_frame, self.transform_funcs)
+        meas_ref_t=self.transformer.run(meas_ref)
+        meas_meas_t=self.transformer.run(meas_meas)
 
-        return np.hstack((meas_ref_t, meas_frame_t, meas_frame_t -meas_ref_t)), volt_ref, volt_frame
+        return np.hstack((meas_ref_t, meas_meas_t, meas_meas_t -meas_ref_t)), volt_ref, volt_meas
 
-    def get_metadata(self, labels):
+    def get_metadata(self, v_ref: EITVoltage, v_meas: EITVoltage):
         """provide all posible metadata for ploting"""
 
-        self.lab_ref_idx = labels[0][0]
-        self.lab_ref_freq = labels[0][1]
-        self.lab_frm_idx = labels[1][0]
-        self.lab_frm_freq = labels[1][1]
+        self.lab_ref_idx = v_ref.get_frame_name()
+        self.lab_ref_freq = v_ref.get_frame_freq()
+        self.lab_frm_idx = v_meas.get_frame_name()
+        self.lab_frm_freq = v_meas.get_frame_freq()
 
-        for key, func in DATA_TRANSFORMATIONS.items():
-            if func == self.transform_funcs[0]:
-                trans_label = key
+        trans_label = self.transformer.get_label_trans()
 
         self.label_meas = [f"{trans_label}(U)", f"{trans_label}({self.label_imaging})"]
-        if DATA_TRANSFORMATIONS["Abs"] == self.transform_funcs[1]:
-            self.label_meas = [f"||{lab}||" for lab in self.label_meas]
+        self.label_meas = [
+            self.transformer.add_abs_bars(lab) for lab in self.label_meas
+        ]
+
 
     @abstractmethod
-    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
+    def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         """"""
 
@@ -159,23 +159,23 @@ class AbsoluteImaging(Imaging):
         self.label_imaging = "U"
 
     def transform_voltages(
-        self, v_ref: np.ndarray, v_frame: np.ndarray, eit_model: EITModel
-    ) -> List[np.ndarray]:
+        self, v_ref: EITVoltage, v_meas: EITVoltage, eit_model: EITModel
+    ) -> np.ndarray:
         """"""
-        meas_ref, volt_ref= eit_model.get_meas_voltages(v_ref)
-        meas_frame, volt_frame= eit_model.get_meas_voltages(v_frame)
+        meas_ref, volt_ref= eit_model.get_meas_voltages(v_ref.volt)
+        meas_meas, volt_meas= eit_model.get_meas_voltages(v_meas.volt)
 
-        meas_ref_t=transform(meas_ref, self.transform_funcs)
-        meas_frame_t=transform(meas_frame, self.transform_funcs)
+        meas_ref_t=self.transformer.run(meas_ref)
+        meas_meas_t=self.transformer.run(meas_meas)
 
-        return np.hstack((meas_ref_t, meas_frame_t, meas_frame_t)), volt_ref, volt_frame
+        return np.hstack((meas_ref_t, meas_meas_t, meas_meas_t)), volt_ref, volt_meas
 
 
-    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
+    def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         # self.check_data(1, 1)
-
         t = f"({self.label_meas[1]});"
+        self.lab_data= f"Absolute Imaging {t} {self.lab_frm_idx} ({self.lab_frm_freq})"
         return {
             EITPlotsType.Image_2D: CustomLabels(
                 f"Absolute Imaging {t}",
@@ -201,11 +201,10 @@ class TimeDifferenceImaging(Imaging):
         self.label_imaging = "\u0394U_t"  # ΔU_t
 
 
-    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
-
-        # self.check_data(2, 1)
+    def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         t = f"({self.label_meas[1]}); {self.lab_ref_idx} - {self.lab_frm_idx} ({self.lab_frm_freq})"
+        self.lab_data= f"Time difference Imaging {t}"
 
         return {
             EITPlotsType.Image_2D: CustomLabels(
@@ -234,13 +233,12 @@ class FrequenceDifferenceImaging(Imaging):
         """Custom initialization"""
         self.label_imaging = "\u0394U_f"  # ΔU_f
 
-    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
-
-        # self.check_data(1, 2)
+    def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
         t = (
-            f" ({self.label_meas[1]}); {self.lab_ref_freq} - {self.lab_frm_freq} ({self.lab_frm_idx})",
+            f" ({self.label_meas[1]}); {self.lab_ref_freq} - {self.lab_frm_freq} ({self.lab_frm_idx})"
         )
+        self.lab_data= f"Frequency difference Imaging {t}"
 
         return {
             EITPlotsType.Image_2D: CustomLabels(
@@ -268,11 +266,11 @@ class ChannelVoltageImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "U_ch"
-    def make_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
-        # self.check_data(1, 2)
+    def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
-        t = (f" ({self.label_meas[1]})",)
+        t = f" ({self.label_meas[1]});"
+        self.lab_data= f"Channel Voltages {t} {self.lab_frm_idx} ({self.lab_frm_freq})"
 
         return {
             EITPlotsType.U_plot: CustomLabels(
@@ -293,11 +291,7 @@ IMAGING_TYPE:dict[str, Imaging] = {
 }
 
 
-def eit_imaging_types()->list[str]:
-    return list(IMAGING_TYPE.keys())
 
-def eit_data_transformations()->list[str]:
-    return list(DATA_TRANSFORMATIONS.keys())[:4]
 
 if __name__ == "__main__":
     """"""

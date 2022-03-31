@@ -265,8 +265,8 @@ class SolverPyEIT(Solver):
 
         if isinstance(self.inv_solver, greit.GREIT):
             _, _, ds = self.inv_solver.mask_value(ds, mask_value=np.NAN)
-
-        return self.eit_model.build_img(data=ds, label="rec image")
+        
+        return self.eit_model.build_img(data=ds, label=f"PyEIT image: {data.label}")
 
     def set_params(self, params: PyEitRecParams = None) -> None:
         """Set the reconstrustions parameters for each inverse solver type

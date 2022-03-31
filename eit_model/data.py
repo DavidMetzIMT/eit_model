@@ -57,10 +57,39 @@ class EITVoltMonitoring(object):
     volt_frame= dict of ndarray of shape (n_exc, n_ch) dtype = complex
 
     """
-
     volt_ref: np.ndarray 
     volt_frame: np.ndarray
     labels:Any=''
+
+@dataclass
+class EITVoltageLabels(object):
+    """_summary_
+
+    volt= ndarray of shape (n_exc, n_ch) dtype = complex
+    labels:
+
+    """
+    frame_idx:int # frame indx
+    freq:float # frame frequency
+    lab_frame_idx:str # frame indx label string
+    lab_frame_freq:str # frame frequency label string
+
+
+@dataclass
+class EITVoltage(object):
+    """eit voltages 
+
+    volt (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
+    labels:EITVoltageLabels
+
+    """
+    volt: np.ndarray 
+    labels:EITVoltageLabels
+    
+    def get_frame_name(self)->str:
+        return self.labels.lab_frame_idx
+    def get_frame_freq(self)->str:
+        return self.labels.lab_frame_freq
 
 
 @dataclass
