@@ -314,9 +314,9 @@ class EITModel(object):
             voltages (np.ndarray): shape(n_exc, n_channel)
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: shape(n_exc, n_meas)
-
-            meas_data  should be (n_meas(exc_1))
+            Tuple[np.ndarray, np.ndarray]: 
+            - meas_voltage shape(n_exc, n_elec)
+            - meas_data  should be shape(n_meas*exc_1, )
         """
         if volt is None:
             return np.array([])
