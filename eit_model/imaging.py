@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from dataclasses import dataclass, field
+from typing import Callable, List, Tuple
 import numpy as np
 from eit_model.plot import CustomLabels, EITPlotsType
 from eit_model.model import EITModel
-from eit_model.data import EITData, EITMeasMonitoring, EITVoltMonitoring
+from eit_model.data import EITData, EITMeasMonitoring, EITVoltMonitoring, EITVoltage
 
 
 def identity(x: np.ndarray) -> np.ndarray:
@@ -22,84 +23,78 @@ DATA_TRANSFORMATIONS = {
     "Identity": identity,
 }
 
+def eit_imaging_types()->list[str]:
+    return list(IMAGING_TYPE.keys())
 
+def eit_data_transformations()->list[str]:
+    return list(DATA_TRANSFORMATIONS.keys())[:4]
 
+@dataclass
+class Transformer:
+    transform: str
+    show_abs: bool
+    _transform_funcs:list[Callable]=field(init=False)
 
-# def make_voltage_vector(
-#     eit_model: EITModel,
-#     transform_funcs: list,
-#     voltages: np.ndarray,
-#     get_ch: bool = False,
-# ) -> np.ndarray:
-#     """_summary_
+    def __post_init__(self):
 
-#     Args:
-#         eit_model (EITModel): _description_
-#         transform_funcs (list): _description_
-#         voltages (np.ndarray): shape(n_exc, n_channel)
+        if self.transform not in DATA_TRANSFORMATIONS:
+            raise Exception(f"The transformation {self.transform} unknown")
 
-#     Returns:
-#         np.ndarray: _description_
-#     """
-#     if voltages is None:
-#         return np.array([])
-#     # get only the voltages of used electrode (0-n_el)
-#     meas_voltage = voltages[:, : eit_model.n_elec]
-#     # get the volgate corresponding to the meas_pattern and flatten
-#     meas = (
-#         meas_voltage.flatten()
-#         if get_ch
-#         else eit_model.single_meas_pattern(0).dot(meas_voltage.T).T.flatten()
-#     )
+        self._transform_funcs = [
+            DATA_TRANSFORMATIONS[self.transform],
+            DATA_TRANSFORMATIONS["Abs"]
+            if self.show_abs
+            else DATA_TRANSFORMATIONS["Identity"],
+        ]
 
-#     return transform(meas, transform_funcs)
+    def get_label_trans(self)->str:
 
+        for key, func in DATA_TRANSFORMATIONS.items():
+            if func == self._transform_funcs[0]:
+                trans_label = key
 
-def transform(x: np.ndarray, transform_func: list) -> np.ndarray:
-    """_summary_
+        return trans_label
 
-    Args:
-        x (np.ndarray): _description_
-        transform_funcs (list): _description_
+    def add_abs_bars(self, lab:str)->str:
 
-    Raises:
-        Exception: _description_
+        if DATA_TRANSFORMATIONS["Abs"] == self._transform_funcs[1]:
+            lab= f"||{lab}||"
+        return lab
 
-    Returns:
-        np.ndarray: _description_
-    """
-    if len(transform_func) != 2:
-        raise Exception()
+    def run(self,x: np.ndarray) -> np.ndarray:
+        """_summary_
 
-    for func in transform_func:
-        if func is not None:
-            x = func(x)
-    x = np.reshape(x, (x.shape[0], 1))
-    return x
+        Args:
+            x (np.ndarray): _description_
+            transform_funcs (list): _description_
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            np.ndarray: _description_
+        """
+        if len(self._transform_funcs) != 2:
+            raise Exception()
+
+        for func in self._transform_funcs:
+            if func is not None:
+                x = func(x)
+        x = np.reshape(x, (x.shape[0], 1))
+        return x
 
 
 class Imaging(ABC):
 
-    transform_funcs = [identity, identity]
+    transformer = [identity, identity]
     label_imaging: str = ""
     label_meas = None
+    lab_data: str = ""
 
 
     def __init__(self, transform: str, show_abs: bool) -> None:
         super().__init__()
-
-        if transform not in DATA_TRANSFORMATIONS:
-            raise Exception(f"The transformation {transform} unknown")
-
-        transform_funcs = [
-            DATA_TRANSFORMATIONS[transform],
-            DATA_TRANSFORMATIONS["Abs"]
-            if show_abs
-            else DATA_TRANSFORMATIONS["Identity"],
-        ]
-
-        self.transform_funcs = transform_funcs
-
+        self.transformer = Transformer(transform, show_abs)
         self._post_init_()
 
     @abstractmethod
