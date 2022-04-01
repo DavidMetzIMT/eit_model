@@ -97,9 +97,9 @@ class FwdModel:
     PERM_SYM: list = field(default_factory=lambda: ["n"])
 
     def __post_init__(self):
-        self.create_meas_pattern()
+        self._create_meas_pattern()
 
-    def create_meas_pattern(self):
+    def _create_meas_pattern(self):
         if self.stimulation is None:
             return
         
@@ -118,8 +118,8 @@ class FwdModel:
 
         return {
             "nodes": self.nodes,
-            "elems": self.elems,
-            "boundary": self.boundary,
+            "elems": self.elems-1, #python is 0 based indexing
+            "boundary": self.boundary, 
             "gnd_node": self.gnd_node,
             "electrode": self.electrode,
         }

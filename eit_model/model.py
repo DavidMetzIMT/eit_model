@@ -6,6 +6,7 @@ from eit_model.data import EITData, EITImage
 import eit_model.setup
 import eit_model.fwd_model
 import glob_utils.files.matlabfile
+import glob_utils.files.files
 import glob_utils.args.check_type
 from scipy.sparse import csr_matrix
 
@@ -111,6 +112,7 @@ class EITModel(object):
     setup:eit_model.setup.EITSetup
     fwd_model:eit_model.fwd_model.FwdModel
     fem:eit_model.fwd_model.FEModel
+    sim:dict
     
 
     def __init__(self):
@@ -162,6 +164,7 @@ class EITModel(object):
         self.fem = eit_model.fwd_model.FEModel(
             **self.fwd_model.for_FEModel(), **self.setup.for_FEModel()
         )
+        self.sim= struct["sim"]
 
     @property
     def refinement(self):
