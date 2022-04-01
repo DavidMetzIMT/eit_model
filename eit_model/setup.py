@@ -54,7 +54,7 @@ class EITChamber:
     form: str = "Cylinder"
     FORMS: list = field(default_factory=lambda: ["Cylinder", "Cubic", "2D_Circ"])
     ALLOW_ELEC_PLACEMENT: np.ndarray = field(default_factory=lambda: np.array([]))
-
+    height_2D: float=0
     def box_limit(self) -> np.ndarray:
         """Return the Chamber limits as ndarray
 

@@ -139,13 +139,13 @@ class EITModel(object):
     def load_matfile(self, file_path=None):
         if file_path is None:
             return
-        var_dict = glob_utils.files.files.load_mat(file_path, logging=False)
+        var_dict = glob_utils.files.files.load_mat(file_path, logging=True)
         self.import_matlab_env(var_dict)
 
     def import_matlab_env(self, var_dict):
 
         m = glob_utils.files.matlabfile.MatFileStruct()
-        struct = m._extract_matfile(var_dict,verbose=False)
+        struct = m._extract_matfile(var_dict,verbose=True)
 
         fmdl = struct["fwd_model"]
         fmdl["electrode"] = eit_model.fwd_model.mk_list_from_struct(
