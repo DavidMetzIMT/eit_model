@@ -4,10 +4,6 @@ import sys
 
 # Setting the Qt bindings for QtPy
 import os
-from turtle import shape
-
-from matplotlib.pyplot import axis
-
 from eit_model.model import EITModel
 from eit_model.plot import format_inputs, get_elem_nodal_data
 os.environ["QT_API"] = "pyqt5"
@@ -17,6 +13,7 @@ from qtpy import QtWidgets
 import numpy as np
 
 import pyvista as pv
+# import tetgen
 from pyvistaqt import QtInteractor, MainWindow
 
 
@@ -55,10 +52,22 @@ class PyVistaPlotWidget(MainWindow):
         self.add_sphere_action = QtWidgets.QAction('Add Sphere', self)
         self.add_sphere_action.triggered.connect(self.add_sphere)
         meshMenu.addAction(self.add_sphere_action)
+        
+        self.add_electrodes_action = QtWidgets.QAction('Add Electrodes', self)
+        self.add_electrodes_action.triggered.connect(self.add_electrodes)
+        meshMenu.addAction(self.add_electrodes_action)
 
         self.plot_eit_action = QtWidgets.QAction('plotEIt', self)
         self.plot_eit_action.triggered.connect(self.plot_eit)
         meshMenu.addAction(self.plot_eit_action)
+        
+        self.slicing_action = QtWidgets.QAction('Slicing', self)
+        self.slicing_action.triggered.connect(self.create_slice)
+        meshMenu.addAction(self.slicing_action)
+        
+        self.review_slice_action = QtWidgets.QAction('Slicing review', self)
+        self.review_slice_action.triggered.connect(self.show_slices)
+        meshMenu.addAction(self.review_slice_action)
 
         if show:
             self.show()
@@ -84,7 +93,7 @@ class PyVistaPlotWidget(MainWindow):
             single_electrode = elec_mesh.slice(normal='z',)
             # electrodes.append(single_electrode)
             self.plotter.add_mesh(single_electrode, color='green', line_width=10, pickable=True,)
-            self.plotter.add_point_labels(elec_pos, elec_label,font_size=5)
+            self.plotter.add_point_labels(elec_pos, elec_label,font_size=10)
             self.plotter.reset_camera
         
     
@@ -100,28 +109,65 @@ class PyVistaPlotWidget(MainWindow):
         _cells = np.hstack((padding, tri))
         cells= _cells.astype(np.int64).flatten()
         cell_type = np.array([vtk.VTK_TETRA]*tri.shape[0], np.int8)
-        mesh = pv.UnstructuredGrid(cells, cell_type, pts)
+        chamber = pv.UnstructuredGrid(cells, cell_type, pts)
         
-        colors = np.real(self.data)
-        logger.debug(f'{colors=}{colors.shape=}')
-        # colors[colors == np.max(colors)] = math.nan
+        # find the elements of object
+        idx = np.arange(self.data.shape[0])
+        chamber_idx = np.where(self.data == self.data.max())
+        cell_indices = np.delete(idx, chamber_idx)
+        logger.debug(f'{cell_indices=}')
+        object = chamber.extract_cells(cell_indices)
+        
+        # whole = chamber.merge(object, merge_points=True, main_has_priority=True)
+        
+        # merge = pv.MultiBlock([chamber, object]).combine(merge_points=True)
+        merged = object.merge(chamber)
+        logger.debug(f'{merged.n_cells=}')
+        
         self.plotter.clear()
-        self.plotter.add_mesh(mesh, show_edges=True, scalars=colors,opacity=0.5)
-    
-        elec_pos=self.eit.fem.elec_pos_orient()[:, :3]
-        elec_label=[str(x+1) for x in range(elec_pos.shape[0])]
-        for i in range (elec_pos.shape[0]):
-            elec_mesh = pv.Sphere(0.25, elec_pos[i], theta_resolution=8, phi_resolution=8)
-            single_electrode = elec_mesh.slice(normal='z',)
-            # electrodes.append(single_electrode)
-            self.plotter.add_mesh(single_electrode, color='green', line_width=10, pickable=True,)
-            self.plotter.add_point_labels(elec_pos, elec_label,font_size=5)
+        colors = np.real(self.data)   
         
+        self.plotter.add_mesh(object, color= 'blue')
+        self.plotter.add_mesh(chamber,style='wireframe')
+        self.plotter.add_mesh(merged, opacity=0.1, show_scalar_bar=True)
+        
+        # self.plotter.add_scalar_bar('color', interactive=True, vertical=False)
 
         self.plotter.add_axes()
         self.plotter.reset_camera()
-        # self.plotter.background_color='white'
+
+        return chamber
         
+    def create_slice(self):
+        
+        chamber = self.plot_eit()
+        
+        
+        self.plotter.clear()
+        colors = np.real(self.data)     
+        # self.plotter.add_mesh(chamber, scalars=colors) 
+        self.plotter.add_mesh(chamber, show_edges=True,scalars=colors, show_scalar_bar=False, name='chamber', opacity=0.1)
+        # self.plotter.add_mesh(object_slc, show_edges=True, color='blue',name='obj_slice')
+
+        self.plotter.add_mesh_slice(chamber, assign_to_axis='z',)
+    
+        # self.plotter.add_mesh_slice(object, assign_to_axis='z', widget_color= 'blue')
+        self.plotter.add_axes()
+        self.plotter.reset_camera()
+        
+        slice_list = self.plotter.plane_sliced_meshes # List of slices
+        
+        return slice_list 
+        
+        
+    def show_slices(self):
+        
+        slice_list = self.create_slice()
+        
+        for i in slice_list:
+            print(i)
+        slices = pv.MultiBlock(slice_list)
+        slices.plot()
 
 
 
