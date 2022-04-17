@@ -93,7 +93,7 @@ class PyVistaPlotWidget(MainWindow):
             single_electrode = elec_mesh.slice(normal='z',)
             # electrodes.append(single_electrode)
             self.plotter.add_mesh(single_electrode, color='green', line_width=10, pickable=True,)
-            self.plotter.add_point_labels(elec_pos, elec_label,font_size=10)
+            self.plotter.add_point_labels(elec_pos, elec_label,font_size=15)
             self.plotter.reset_camera
         
     
@@ -102,6 +102,7 @@ class PyVistaPlotWidget(MainWindow):
         pts, tri = self.eit.fem.nodes, self.eit.fem.elems
         # data= np.random.rand(tri.shape[0], 1)*10
         self.data=self.eit.sim["img_ih"]["elem_data"]
+        logger.debug(f"{tri.shape= }")
 
         # cell must contain padding indicating the number of points in the cell
         padding = np.ones((tri.shape[0],1))*tri.shape[1]
@@ -166,6 +167,7 @@ class PyVistaPlotWidget(MainWindow):
         
         for i in slice_list:
             print(i)
+            print(i.cell_data)
         slices = pv.MultiBlock(slice_list)
         slices.plot()
 
