@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import imp
 import logging
 from typing import Any
 
@@ -351,7 +350,7 @@ if __name__ == "__main__":
 
     glob_utils.log.log.main_log()
 
-    file_path = "E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat"
+    file_path = ""
     var_dict = glob_utils.files.files.load_mat(file_path)
 
     eit_mdl = EITModel()
