@@ -19,7 +19,7 @@ from pyeit.eit.fem import Forward
 
 logger = logging.getLogger(__name__)
 
-INV_SOLVER_PYEIT = {"JAC": jac.JAC, "BP": bp.BP, "GREIT": greit.GREIT}
+INV_SOLVER_PYEIT:dict[str, EitBase] = {"JAC": jac.JAC, "BP": bp.BP, "GREIT": greit.GREIT}
 
 def used_solver()->list[str]:
     return list(INV_SOLVER_PYEIT.keys())
@@ -36,6 +36,7 @@ class PyEitRecParams(RecParams):
     weight: str = "none"
     parser: str = "meas_current"
     background:float = 1.0
+    vector:bool=True # to use optimized solver
 
 
 class InvSolverNotReadyError(BaseException):
@@ -110,31 +111,6 @@ class SolverPyEIT(Solver):
         mesh, indx_elec = self._get_mesh_idx_elec_for()
         self.fwd_solver = Forward(mesh, indx_elec)
 
-    def _get_mesh_idx_elec_for(self):
-        """Get and check compatility of mesh fro Pyeit
-
-        Raises:
-            ValueError: verify it mesh contained in eit_model is compatible
-
-        """
-
-        # get mesh from eit_model
-        mesh = self.eit_model.pyeit_mesh()
-        # get index of mesh nodes which correspond to the electrodes position
-        indx_elec = np.arange(self.eit_model.n_elec)
-
-        # verify if the mesh contains the electrodes positions only 2D compatible
-        e_pos_mesh = mesh["node"][indx_elec][:, :2]
-        e_pos_model = self.eit_model.elec_pos()[:, :2]
-        mesh_compatible = np.all(np.isclose(e_pos_mesh, e_pos_model))
-
-        if not mesh_compatible:
-            msg = f"Tried to set solver from PyEIT with incompatible mesh {e_pos_mesh=} {e_pos_model=}"
-            logger.error(msg)
-            raise ValueError(msg)
-
-        return mesh, indx_elec
-
     def solve_fwd(self, image: EITImage) -> EITData:
         """Solve the forward problem
 
@@ -161,11 +137,10 @@ class SolverPyEIT(Solver):
 
         ex_mat = self.eit_model.get_pyeit_ex_mat()
 
-        f = self.fwd_solver.solve_eit(
-            ex_mat, step=1, perm=image.data, parser=self.params.parser
+        res = self.fwd_solver.solve_eit(
+            ex_mat, step=1, perm=image.data, parser=self.params.parser,vector=self.params.vector
         )
-
-        return self.eit_model.build_meas_data(f.v, f.v, "solved data")
+        return self.eit_model.build_meas_data(res.v, res.v, "solved data")
 
     def simulate(
         self, image: EITImage = None, homogenious_conduct: float = 1.0
@@ -201,8 +176,8 @@ class SolverPyEIT(Solver):
         sim_data = self.eit_model.build_meas_data(
             data_ih.frame, data_h.frame, "simulated data"
         )
-
         return sim_data, img_h, img_ih
+    
 
     def init_inv(self, params: PyEitRecParams = None, import_fwd: bool = False) -> None:
         """Initialize the inverse and forward solver from `PyEIT` using
@@ -238,6 +213,7 @@ class SolverPyEIT(Solver):
             "perm": 1.0,
             "jac_normalized": False,
             "parser": self.params.parser,
+            "vector": self.params.vector
         }
 
         self.inv_solver: EitBase = eit_solver_cls(**par_tmp)
@@ -298,6 +274,31 @@ class SolverPyEIT(Solver):
             self.inv_solver.setup(self.params.p, self.params.lamb, self.params.n)
 
         self.ready.set()  # activate the solver
+
+    def _get_mesh_idx_elec_for(self):
+        """Get and check compatility of mesh fro Pyeit
+
+        Raises:
+            ValueError: verify it mesh contained in eit_model is compatible
+
+        """
+
+        # get mesh from eit_model
+        mesh = self.eit_model.pyeit_mesh()
+        # get index of mesh nodes which correspond to the electrodes position
+        indx_elec = np.arange(self.eit_model.n_elec)
+
+        # verify if the mesh contains the electrodes positions only 2D compatible
+        e_pos_mesh = mesh["node"][indx_elec][:, :2]
+        e_pos_model = self.eit_model.elec_pos()[:, :2]
+        mesh_compatible = np.all(np.isclose(e_pos_mesh, e_pos_model))
+
+        if not mesh_compatible:
+            msg = f"Tried to set solver from PyEIT with incompatible mesh {e_pos_mesh=} {e_pos_model=}"
+            logger.error(msg)
+            raise ValueError(msg)
+
+        return mesh, indx_elec
 
     def _build_mesh_from_pyeit(self, import_design: bool = False) -> None:
         """To use `PyEIT` solvers (fwd and inv) a special mesh is needed
