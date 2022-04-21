@@ -4,7 +4,7 @@ from typing import Any
 
 from eit_model.data import EITData, EITImage
 
-from eit_model.model import EITModel
+import eit_model.model
 import glob_utils.flags.flag
 
 
@@ -19,13 +19,13 @@ class SolverNotReadyError(BaseException):
 
 class Solver(abc.ABC):
 
-    eit_model: EITModel
+    eit_mdl: eit_model.model.EITModel
     ready: glob_utils.flags.flag.CustomFlag
 
-    def __init__(self, model: EITModel) -> None:
+    def __init__(self, model: eit_model.model.EITModel) -> None:
         super().__init__()
 
-        self.eit_model = model
+        self.eit_mdl = model
         self.ready = glob_utils.flags.flag.CustomFlag()
 
         self.__post_init__()
@@ -90,11 +90,5 @@ class Solver(abc.ABC):
 
 
 if __name__ == "__main__":
-
-    from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
-
-    import glob_utils.files.files
     import glob_utils.log.log
-
     glob_utils.log.log.main_log()

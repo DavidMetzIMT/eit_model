@@ -121,20 +121,14 @@ class EITSetup:
 
 
 if __name__ == "__main__":
-    import glob_utils.files.matlabfile
-    import glob_utils.files.files
-
-    from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
-
-    import glob_utils.files.files
+    import glob_utils.file.mat_utils
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()
 
     file_path = "E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat"
-    var_dict = glob_utils.files.files.load_mat(file_path)
-    m = glob_utils.files.matlabfile.MatFileStruct()
+    var_dict = glob_utils.file.mat_utils.load_mat(file_path)
+    m = glob_utils.file.mat_utils.MatFileStruct()
     struct = m._extract_matfile(var_dict)
     f = struct["setup"]
     setup = EITSetup(**f)

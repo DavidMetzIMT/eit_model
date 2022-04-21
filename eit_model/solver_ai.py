@@ -88,7 +88,7 @@ class SolverAi(Solver):
         # perm = format_inputs(self.fwd_model, perm_real)
 
         # logger.debug(f"perm shape = {perm.shape}")
-        init_data = self.eit_model.build_meas_data(
+        init_data = self.eit_mdl.build_meas_data(
             voltages[2], voltages[2], "solved data"
         )
         self.ready.set()
@@ -114,7 +114,7 @@ class SolverAi(Solver):
             metadata=self.metadata, single_X=X, preprocess=True
         )
 
-        return self.eit_model.build_img(data=perm_real, label="rec image")
+        return self.eit_mdl.build_img(data=perm_real, label="rec image")
 
     def preprocess(self, data: EITData) -> np.ndarray:
 
@@ -143,10 +143,7 @@ class SolverAi(Solver):
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
     from eit_model.plot import EITImage2DPlot
-
-    import glob_utils.files.files
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()

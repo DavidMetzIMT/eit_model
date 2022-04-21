@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Tuple
-
 import numpy as np
-
-from eit_model import fwd_model
+import eit_model.fwd_model
 
 
 @dataclass
@@ -30,7 +28,7 @@ class EITImage(object):
     fem: dict = None
 
     def __init__(
-        self, data: np.ndarray = None, label: str = "", fem: fwd_model.FEModel = None
+        self, data: np.ndarray = None, label: str = "", fem: eit_model.fwd_model.FEModel = None
     ) -> None:
 
         self.data = fem.format_perm(data) if data is not None else fem.elems_data
@@ -110,10 +108,6 @@ class EITMeasMonitoring(object):
 
 if __name__ == "__main__":
 
-    from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
-
-    import glob_utils.files.files
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()

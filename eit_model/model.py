@@ -5,8 +5,8 @@ import numpy as np
 from eit_model.data import EITData, EITImage
 import eit_model.setup
 import eit_model.fwd_model
-import glob_utils.files.matlabfile
-import glob_utils.files.files
+import glob_utils.file.mat_utils
+import glob_utils.file.utils
 import glob_utils.args.check_type
 from scipy.sparse import csr_matrix
 
@@ -31,10 +31,11 @@ class ChipTranslatePins(object):
     def load(self, path):
 
         tmp = np.loadtxt(path, dtype=int)
+        glob_utils.file.utils.logging_file_loaded(path)
         # TODO verify the fiste colum schould be 1-N
         self._elec_num = tmp[:, 0]
         self._ch_num = tmp[:, 1] 
-        print(f"{self._elec_num=},{self._ch_num=}")
+        logger.debug(f"{self._elec_num=},{self._ch_num=}")
         self.build_trans_matrices()   
 
     def transform_exc(self, exc_pattern:np.ndarray )->np.ndarray:
@@ -94,7 +95,7 @@ class ChipTranslatePins(object):
         self._elec_to_ch[:a.shape[0],:a.shape[1]]= a
 
         self._ch_to_elec= self._elec_to_ch.T
-        logger.debug(f"{self._elec_to_ch=}, {self._ch_to_elec=}")
+        # logger.debug(f"{self._elec_to_ch=}, {self._ch_to_elec=}")
         logger.debug(f"{self._elec_to_ch.shape=}, {self._ch_to_elec.shape=}")
 
 
@@ -135,19 +136,21 @@ class EITModel(object):
 
     def load_defaultmatfile(self):
         dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, "default", "default_eit_model.mat")
-        self.load_matfile(filename)
+        file_path = os.path.join(dirname, "default", "default_eit_model.mat")
+        self.load_matfile(file_path)
 
     def load_matfile(self, file_path=None):
         if file_path is None:
             return
-        var_dict = glob_utils.files.files.load_mat(file_path, logging=True)
+        var_dict = glob_utils.file.mat_utils.load_mat(file_path, logging=False)
+
+        self.file_path=file_path
         self.import_matlab_env(var_dict)
 
     def import_matlab_env(self, var_dict):
 
-        m = glob_utils.files.matlabfile.MatFileStruct()
-        struct = m._extract_matfile(var_dict,verbose=True)
+        m = glob_utils.file.mat_utils.MatFileStruct()
+        struct = m._extract_matfile(var_dict,verbose=False)
 
         fmdl = struct["fwd_model"]
         fmdl["electrode"] = eit_model.fwd_model.mk_list_from_struct(
@@ -165,7 +168,10 @@ class EITModel(object):
             **self.fwd_model.for_FEModel(), **self.setup.for_FEModel()
         )
         self.sim= struct["sim"]
-
+        for k in struct.keys():
+            if "eit_" in k:
+                self.name= struct[k]['name']
+                break
     @property
     def refinement(self):
         return self.fem.refinement
@@ -326,7 +332,7 @@ class EITModel(object):
         # get only the voltages of used electrode (0-n_el)
 
         meas_voltage = self.chip.trans_ch_to_elec(volt)
-        logger.debug(f"{meas_voltage=}")
+        # logger.debug(f"{meas_voltage=}")
         # get the volgate corresponding to the meas_pattern and flatten
 
         # meas_data1 = meas_voltage.dot(self.single_meas_pattern(0).T)
@@ -334,7 +340,7 @@ class EITModel(object):
         # logger.debug(f"flat {meas_data1=}")
 
         meas_data= self.meas_pattern().dot(meas_voltage.flatten())
-        logger.debug(f"{meas_data=}{meas_data.shape=}")
+        # logger.debug(f"{meas_data=}{meas_data.shape=}")
         # logger.debug(f"{meas_data1-meas_data=}")
 
         # meas = (
@@ -350,13 +356,6 @@ class EITModel(object):
 
 if __name__ == "__main__":
 
-    import glob_utils.files.matlabfile
-    import glob_utils.files.files
-
-    from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
-
-    import glob_utils.files.files
     import glob_utils.log.log
     glob_utils.log.log.main_log()
     a = np.array([[1,2], [3,4]])
