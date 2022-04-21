@@ -569,9 +569,9 @@ def add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage):
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
+    import glob_utils.file.mat_utils
 
-    import glob_utils.files.files
+    import glob_utils.file
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()

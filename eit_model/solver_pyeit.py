@@ -35,7 +35,7 @@ class PyEitRecParams(RecParams):
     weight: str = "none"
     parser: str = "meas_current"
     background:float = 1.0
-    vector:bool=True # to use optimized solver
+    # vector:bool=True # to use optimized solver
 
 
 class InvSolverNotReadyError(BaseException):
@@ -137,7 +137,7 @@ class SolverPyEIT(Solver):
         ex_mat = self.eit_model.get_pyeit_ex_mat()
 
         res = self.fwd_solver.solve_eit(
-            ex_mat, step=1, perm=image.data, parser=self.params.parser,vector=self.params.vector
+            ex_mat, step=1, perm=image.data, parser=self.params.parser
         )
         return self.eit_model.build_meas_data(res.v, res.v, "solved data")
 
@@ -212,7 +212,7 @@ class SolverPyEIT(Solver):
             "perm": 1.0,
             "jac_normalized": False,
             "parser": self.params.parser,
-            "vector": self.params.vector
+            # "vector": self.params.vector
         }
 
         self.inv_solver: EitBase = eit_solver_cls(**par_tmp)
@@ -343,15 +343,14 @@ class SolverPyEIT(Solver):
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
-    import glob_utils.files.matlabfile
+    import glob_utils.file.mat_utils
 
-    import glob_utils.files.files
     import glob_utils.log.log
 
     glob_utils.log.log.main_log()
 
     file_path = ""
-    var_dict = glob_utils.files.files.load_mat(file_path)
+    var_dict = glob_utils.file.mat_utils.load_mat(file_path)
 
     eit_mdl = EITModel()
     eit_mdl.load_defaultmatfile()
