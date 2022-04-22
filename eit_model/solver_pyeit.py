@@ -40,7 +40,7 @@ class PyEitRecParams(eit_model.solver_abc.RecParams):
     weight: str = "none"
     parser: str = "meas_current"
     background:float = 1.0
-    vector:bool=False # to use optimized solver
+    vector:bool=True # to use optimized solver
 
 
 class InvSolverNotReadyError(BaseException):
@@ -142,7 +142,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         ex_mat = self.eit_mdl.get_pyeit_ex_mat()
 
         res = self.fwd_solver.solve_eit(
-            ex_mat, step=1, perm=image.data, parser=self.params.parser#,vector=self.params.vector
+            ex_mat, step=1, perm=image.data, parser=self.params.parser,vector=self.params.vector
         )
         return self.eit_mdl.build_meas_data(res.v, res.v, "solved data")
 
@@ -217,7 +217,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             "perm": 1.0,
             "jac_normalized": False,
             "parser": self.params.parser,
-            # "vector": self.params.vector
+            "vector": self.params.vector
         }
 
         self.inv_solver: pyeit.eit.base.EitBase = eit_solver_cls(**par_tmp)
