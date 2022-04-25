@@ -212,7 +212,6 @@ class MeasErrorPlot(EITCustomPlots):
         dfm["index"] = dfm["index"].apply(lambda x: x % ch + 1)
 
         df_plot = dfm.loc[dfm["vals"] ==1]
-        # fig, ax = plt.subplots()
         ax = sns.histplot(x="frames", y="index", data=df_plot, bins=100, cbar=True, cmap = 'coolwarm')
         # ax.set_xlabel("frame")
         ax.set_ylabel("channel voltage")
@@ -223,7 +222,6 @@ def filter_value(x):
         # x = np.linalg.norm(x)   # mag
     # return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
     return 1 if np.abs(x) < 0.00001 else 0
-
 
 class EITImage2DPlot(EITCustomPlots):
     """TODO"""
@@ -264,11 +262,11 @@ class EITImage2DPlot(EITCustomPlots):
         perm = np.real(data)
         logger.debug(f'perm shape = {perm.shape}')
 
-        if np.all(perm <= 1) and np.all(perm > 0):
-            colorbar_range = [0, 1]
-            title = image.label + "\nNorm conduct"
-        else:
-            title = image.label + "\nConduct"
+        # if np.all(perm <= 1) and np.all(perm > 0):
+        #     colorbar_range = [0, 1]
+        #     title = image.label + "\nNorm conduct"
+        # else:
+        #     title = image.label + "\nConduct"
         im = ax.tripcolor(
             pts[:, 0],
             pts[:, 1],
@@ -280,23 +278,17 @@ class EITImage2DPlot(EITCustomPlots):
         )
 
         fig, ax = add_elec_numbers(fig, ax, image)
-
-        # ax.axis("equal")
-        # fig.set_tight_layout(True)
-        # ax.margins(x=0.0, y=0.0)
         ax.set_aspect("equal", "box")
-        # ax.set_xlim(-1, 1)
-        # ax.set_ylim(-1, 1)
-        # ax.axis('off')
-        if show[0]:
-            ax.set_title(labels.title)
+
+        # if show[0]:
+        #     ax.set_title(labels.title)
         if show[1]:
             ax.axis("on")
             ax.set_xlabel(labels.axis[0])
         if show[2]:
             ax.set_ylabel(labels.axis[1])
         if show[3]:
-            fig.colorbar(im, ax=ax)
+            fig.colorbar(im, ax=ax, location="right", shrink=0.6, label= labels.title)
         return fig, ax
 
 
