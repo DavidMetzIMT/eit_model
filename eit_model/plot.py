@@ -303,6 +303,36 @@ def _add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage)-> Tupl
 
     return fig, ax
 
+class EITElemsDataPlot(EITCustomPlots):
+    """Plot the elem data from an EITImage"""
+
+    def _post_init_(self):
+        """Custom initialization"""
+        self.type = EITPlotsType.U_plot
+
+    def plot(
+        self,
+        fig: figure.Figure,
+        ax: axes.Axes,
+        image: EITImage,
+        labels: CustomLabels = None,
+        options: Any = None,
+    ) -> Tuple[figure.Figure, axes.Axes]:
+        """Plot"""
+
+        if labels is None or not isinstance(labels, CustomLabels):
+            labels = CustomLabels(
+                "Elements data", ["", ""], ["Elems #", "Conductivity"]
+            )
+
+        ax.plot(image.data, "-b")
+
+        ax.set_title(labels.title)
+        ax.set_xlabel(labels.axis[0])
+        ax.set_ylabel(labels.axis[1])
+        legend = ax.legend(loc="upper left")
+
+        return fig, ax
 
 if __name__ == "__main__":
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>995</width>
-    <height>647</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,128 +20,85 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1,0">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,1,0">
+    <item row="1" column="2">
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="verticalSpacing">
+       <number>20</number>
+      </property>
+      <item row="2" column="0">
+       <widget class="QSlider" name="slider_z">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksAbove</enum>
+        </property>
+        <property name="tickInterval">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QSlider" name="slider_x">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksAbove</enum>
+        </property>
+        <property name="tickInterval">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QSlider" name="slider_y">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksAbove</enum>
+        </property>
+        <property name="tickInterval">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="1">
+     <layout class="QGridLayout" name="slice_layout"/>
+    </item>
+    <item row="1" column="0">
+     <layout class="QVBoxLayout" name="main_layout"/>
+    </item>
+    <item row="0" column="0">
      <widget class="QLineEdit" name="eit_model_name"/>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="gB_mesh">
-      <property name="title">
-       <string>Mesh</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1,0">
-         <item>
-          <layout class="QVBoxLayout" name="mesh_layout"/>
-         </item>
-         <item>
-          <layout class="QGridLayout" name="slice_layout"/>
-         </item>
-         <item>
-          <layout class="QGridLayout" name="gridLayout">
-           <property name="verticalSpacing">
-            <number>20</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QSlider" name="slider_x">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>50</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::TicksAbove</enum>
-             </property>
-             <property name="tickInterval">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QSlider" name="slider_z">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="singleStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>50</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::TicksAbove</enum>
-             </property>
-             <property name="tickInterval">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QSlider" name="slider_y">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="singleStep">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <number>50</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::TicksAbove</enum>
-             </property>
-             <property name="tickInterval">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QTabWidget" name="tabW_elem_data">
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Elem data</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <layout class="QVBoxLayout" name="elems_data_layout"/>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>300</width>
-        <height>0</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>
@@ -187,9 +144,6 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="action_show_mesh"/>
-    <addaction name="action_show_elements_data_monitoring"/>
-    <addaction name="separator"/>
     <addaction name="action_view_xy_plane"/>
     <addaction name="action_view_xz_plane"/>
     <addaction name="action_view_yz_plane"/>
@@ -338,25 +292,6 @@
   <action name="action_load_eit_image_dummy">
    <property name="text">
     <string>Load EIT image dummy</string>
-   </property>
-  </action>
-  <action name="action_show_elements_data_monitoring">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show elements data monitoring</string>
-   </property>
-  </action>
-  <action name="action_show_mesh">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show mesh</string>
    </property>
   </action>
  </widget>
