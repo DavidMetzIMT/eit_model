@@ -168,6 +168,7 @@ class EITModel(object):
             **self.fwd_model.for_FEModel(), **self.setup.for_FEModel()
         )
         self.sim= struct["sim"]
+        # set name of eit_model
         for k in struct.keys():
             if "eit_" in k:
                 self.name= struct[k]['name']
@@ -201,8 +202,8 @@ class EITModel(object):
         """
         if image is not None and isinstance(image, EITImage):
             return {
-                "node": image.fem["nodes"],
-                "element": image.fem["elems"],
+                "node": image.nodes,
+                "element": image.elems,
                 "perm": image.data,
             }
 

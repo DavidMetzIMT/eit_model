@@ -23,30 +23,32 @@ class EITData(object):
 
 
 class EITImage(object):
-    data: np.ndarray = np.array([])
-    label: str = ""
-    fem: dict = None
+    data: np.ndarray
+    label: str
+    nodes: np.ndarray
+    elems: np.ndarray
+    elec_pos: np.ndarray
 
     def __init__(
         self, data: np.ndarray = None, label: str = "", fem: eit_model.fwd_model.FEModel = None
     ) -> None:
 
-        self.data = fem.format_perm(data) if data is not None else fem.elems_data
-        self.fem = {
-            "nodes": fem.nodes,
-            "elems": fem.elems,
-            "elec_pos": fem.elec_pos_orient(),
-        }
         self.label = label
 
+        # fem relevant data
+        self.data = fem.format_perm(data) if data is not None else fem.elems_data
+        self.nodes= fem.nodes
+        self.elems= fem.elems
+        self.elec_pos= fem.elec_pos_orient()
+
     def get_data_for_plot(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Return the nodes, elems and the elements for plotting
-        purpose for example
+        """Return the nodes, elems and the elements data 
+        e.g. for plotting purpose
 
         Returns:
-            Tuple[np.ndarray, np.ndarray,np.ndarray]: _description_
+            Tuple[np.ndarray, np.ndarray,np.ndarray]: self.nodes, self.elems, self.data
         """
-        return self.fem["nodes"], self.fem["elems"], self.data
+        return self.nodes, self.elems, self.data
 
 @dataclass
 class EITVoltMonitoring(object):

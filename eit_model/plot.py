@@ -277,7 +277,7 @@ class EITImage2DPlot(EITCustomPlots):
             vmax=colorbar_range[1],
         )
 
-        fig, ax = add_elec_numbers(fig, ax, image)
+        fig, ax = _add_elec_numbers(fig, ax, image)
         ax.set_aspect("equal", "box")
 
         # if show[0]:
@@ -292,10 +292,10 @@ class EITImage2DPlot(EITCustomPlots):
         return fig, ax
 
 
-def add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage):
+def _add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage)-> Tuple[figure.Figure, axes.Axes]:
 
-    elec_x = image.fem["elec_pos"][:, 0]
-    elec_y = image.fem["elec_pos"][:, 1]
+    elec_x = image.elec_pos[:, 0]
+    elec_y = image.elec_pos[:, 1]
 
     ax.plot(elec_x, elec_y, "ok")
     for i, (x, y) in enumerate(zip(elec_x, elec_y)):
