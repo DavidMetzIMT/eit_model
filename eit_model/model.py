@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any, Tuple
 import numpy as np
-from eit_model.data import EITData, EITImage
 import eit_model.setup
 import eit_model.fwd_model
 import glob_utils.file.mat_utils
@@ -188,7 +187,7 @@ class EITModel(object):
     def n_elec(self, all: bool = True):
         return len(self.fem.electrode)
 
-    def pyeit_mesh(self, image: EITImage = None) -> dict[str, np.ndarray]:
+    def pyeit_mesh(self) -> dict[str, np.ndarray]:
         """Return mesh needed for pyeit package
 
         mesh ={
@@ -200,13 +199,6 @@ class EITModel(object):
         Returns:
             dict: mesh dictionary
         """
-        if image is not None and isinstance(image, EITImage):
-            return {
-                "node": image.nodes,
-                "element": image.elems,
-                "perm": image.data,
-            }
-
         return self.fem.get_pyeit_mesh()
 
     def elec_pos(self) -> np.ndarray:
@@ -304,14 +296,6 @@ class EITModel(object):
             m = np.max(self.fem.nodes, axis=0)
             n = np.min(self.fem.nodes, axis=0)
             self.set_bbox(np.round(m - n, 1))
-
-
-    def build_meas_data( self, ref: np.ndarray, frame: np.ndarray, label: str = "" ) -> EITData:
-        """"""
-        # TODO  mk som test on the shape of the inputs
-        meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1)), np.reshape((frame - ref), (-1, 1))))
-        return EITData(meas, label)
-
     
     def get_meas_voltages(self, volt:np.ndarray)-> Tuple[np.ndarray, np.ndarray]:
 

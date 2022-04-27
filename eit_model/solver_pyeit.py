@@ -14,7 +14,7 @@ import pyeit.eit.fem
 
 
 
-from eit_model.data import EITData, EITImage
+from eit_model.data import EITData, EITImage, build_EITData
 import eit_model.solver_abc
 
 logger = logging.getLogger(__name__)
@@ -143,7 +143,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         res = self.fwd_solver.solve_eit(
             ex_mat, step=1, perm=image.data, parser=self.params.parser
         )
-        return self.eit_mdl.build_meas_data(res.v, res.v, "solved data")
+        return build_EITData(res.v, res.v, "solved data")
 
     def simulate(
         self, image: EITImage = None, homogenious_conduct: float = 1.0
@@ -176,9 +176,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         data_h = self.solve_fwd(img_h)
         data_ih = self.solve_fwd(img_ih)
 
-        sim_data = self.eit_mdl.build_meas_data(
-            data_ih.frame, data_h.frame, "simulated data"
-        )
+        sim_data = build_EITData(data_ih.frame, data_h.frame, "simulated data")
         return sim_data, img_h, img_ih
     
 

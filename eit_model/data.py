@@ -4,6 +4,9 @@ import numpy as np
 import eit_model.fwd_model
 import eit_model.model
 
+
+
+
 @dataclass
 class EITData(object):
     meas: np.ndarray = np.array([])
@@ -20,6 +23,12 @@ class EITData(object):
     @property
     def ds(self) -> np.ndarray:
         return self.meas[:, 2]
+
+def build_EITData(ref: np.ndarray, frame: np.ndarray, label: str = "" ) -> EITData:
+    """Build EITData out of a ref and a frame array"""
+    # TODO  mk som test on the shape of the inputs
+    meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1)), np.reshape((frame - ref), (-1, 1))))
+    return EITData(meas, label)
 
 
 class EITImage(object):

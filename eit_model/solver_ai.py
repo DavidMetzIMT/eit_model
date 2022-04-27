@@ -4,7 +4,7 @@ import numpy as np
 from eit_model.model import EITModel
 from eit_model.solver_abc import Solver,RecParams
 from typing import Any
-from eit_model.data import EITData, EITImage
+from eit_model.data import EITData, EITImage, build_EITData
 from eit_ai.train_utils.workspace import AiWorkspace
 from eit_ai.train_utils.metadata import MetaData, reload_metadata
 from eit_ai.raw_data.matlab import MatlabSamples
@@ -88,9 +88,7 @@ class SolverAi(Solver):
         # perm = format_inputs(self.fwd_model, perm_real)
 
         # logger.debug(f"perm shape = {perm.shape}")
-        init_data = self.eit_mdl.build_meas_data(
-            voltages[2], voltages[2], "solved data"
-        )
+        init_data = build_EITData(voltages[2], voltages[2], "solved data" )
         self.ready.set()
 
         return init_data
