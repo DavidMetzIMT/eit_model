@@ -162,16 +162,16 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             the simulated ref and measurement,
             and both EIT images used img_h and img_ih
         """
-        img_h = self.eit_mdl.build_img(data=homogenious_conduct, label="homogenious")
+        img_h = EITImage(data=homogenious_conduct, label="homogenious", model=self.eit_mdl)
 
         img_ih = image
         if img_ih is None:  # create dummy image
             mesh = self.eit_mdl.pyeit_mesh()
             anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 10}]
             pyeit_mesh_ih = pyeit.mesh.set_perm(mesh, anomaly=anomaly, background=1.0)
-            img_ih = self.eit_mdl.build_img(
-                data=pyeit_mesh_ih["perm"], label="inhomogenious"
-            )
+            img_ih = EITImage(
+                data=pyeit_mesh_ih["perm"], label="inhomogenious", model=self.eit_mdl)
+
 
         data_h = self.solve_fwd(img_h)
         data_ih = self.solve_fwd(img_ih)
@@ -244,7 +244,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         if isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
             _, _, ds = self.inv_solver.mask_value(ds, mask_value=np.NAN)
         
-        return self.eit_mdl.build_img(data=ds, label=f"PyEIT image: {data.label}")
+        return EITImage(data=ds, label=f"PyEIT image: {data.label}", model=self.eit_mdl)
 
     def set_params(self, params: PyEitRecParams = None) -> None:
         """Set the reconstrustions parameters for each inverse solver type

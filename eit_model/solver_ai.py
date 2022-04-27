@@ -114,7 +114,7 @@ class SolverAi(Solver):
             metadata=self.metadata, single_X=X, preprocess=True
         )
 
-        return self.eit_mdl.build_img(data=perm_real, label="rec image")
+        return EITImage(data=perm_real, label="rec image", model=self.eit_mdl)
 
     def preprocess(self, data: EITData) -> np.ndarray:
 

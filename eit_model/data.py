@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 import numpy as np
 import eit_model.fwd_model
-
+import eit_model.model
 
 @dataclass
 class EITData(object):
@@ -30,13 +30,29 @@ class EITImage(object):
     elec_pos: np.ndarray
 
     def __init__(
-        self, data: np.ndarray = None, label: str = "", fem: eit_model.fwd_model.FEModel = None
+        self, data: np.ndarray = None,
+        label: str = "",
+        model: Union[eit_model.fwd_model.FEModel,eit_model.model.EITModel] = None
     ) -> None:
+        """
+        Return EITimage object with corresponding data
+        
+        The image can be build from an FEModel or an EITmodel
+        if data is None or not passed the image.data are set to 1
+        """
+        if model is None:
+            raise ValueError("'model' not passed")
+        if isinstance(model, eit_model.fwd_model.FEModel):
+            fem= model
+        elif isinstance(fem, eit_model.model.EITModel):
+            fem=model.fem
+        else:
+            raise TypeError("argument 'model' should be FEModel or EITmodel")
 
         self.label = label
 
         # fem relevant data
-        self.data = fem.format_perm(data) if data is not None else fem.elems_data
+        self.data = fem.format_perm(data) if data is not None else fem.get_elems_data()
         self.nodes= fem.nodes
         self.elems= fem.elems
         self.elec_pos= fem.elec_pos_orient()

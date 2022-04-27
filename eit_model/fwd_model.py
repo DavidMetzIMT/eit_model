@@ -147,8 +147,8 @@ class FwdModel:
 
 @dataclass
 class FEModel:
-    nodes: np.ndarray = None
-    elems: np.ndarray = None
+    nodes: np.ndarray
+    elems: np.ndarray
     elems_data: np.ndarray = None
     boundary: np.ndarray = None
     gnd_node: int = 0
@@ -180,6 +180,15 @@ class FEModel:
         self.nodes = pts
         self.elems = tri
         self.elems_data = self.format_perm(perm)
+    
+    def get_elems_data(self):
+        """Return the elements data
+        if they are not defined a one vector will be returned
+
+        Returns:
+            _type_: _description_
+        """
+        return self.elems_data if self.elems_data is not None else np.ones((self.elems.shape[0],1))
 
     # def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
     #     perm=format_inputs(fwd_model, perm)
@@ -195,7 +204,7 @@ class FEModel:
 
         mesh ={
             'node':np.ndarray shape(n_nodes, 2) for 2D , shape(n_nodes, 3) for 3D ,
-            'element':np.ndarray shape(n_elems, 3) for 2D shape(n_elems, 4) for 3D,
+            'element':np.ndarray shape(n_elems, 3) for 2D, shape(n_elems, 4) for 3D,
             'perm':np.ndarray shape(n_elems,1),
         }
 

@@ -305,8 +305,6 @@ class EITModel(object):
             n = np.min(self.fem.nodes, axis=0)
             self.set_bbox(np.round(m - n, 1))
 
-    def build_img(self, data: np.ndarray = None, label: str = "image") -> EITImage:
-        return EITImage(data, label, self.fem)
 
     def build_meas_data( self, ref: np.ndarray, frame: np.ndarray, label: str = "" ) -> EITData:
         """"""
