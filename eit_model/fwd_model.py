@@ -147,8 +147,8 @@ class FwdModel:
 
 @dataclass
 class FEModel:
-    nodes: np.ndarray
-    elems: np.ndarray
+    nodes: np.ndarray= None
+    elems: np.ndarray= None
     elems_data: np.ndarray = None
     boundary: np.ndarray = None
     gnd_node: int = 0

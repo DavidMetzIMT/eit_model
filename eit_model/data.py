@@ -53,7 +53,7 @@ class EITImage(object):
             raise ValueError("'model' not passed")
         if isinstance(model, eit_model.fwd_model.FEModel):
             fem= model
-        elif isinstance(fem, eit_model.model.EITModel):
+        elif isinstance(model, eit_model.model.EITModel):
             fem=model.fem
         else:
             raise TypeError("argument 'model' should be FEModel or EITmodel")
