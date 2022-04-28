@@ -32,15 +32,54 @@ def used_solver()->list[str]:
 @dataclass
 class PyEitRecParams(eit_model.solver_abc.RecParams):
     solver_type: str = next(iter(INV_SOLVER_PYEIT))
-    p: float = 0.5
-    lamb: float = 0.001
-    n: int = 64
-    normalize: bool = False
-    method: str = "kotre"
-    weight: str = "none"
-    parser: str = "meas_current"
-    background:float = 1.0
+    p: float = 0.5 # for jac, greit
+    lamb: float = 0.001 # for jac, greit
+    n: int = 64 # for greit
+    w:np.ndarray = None # for greit
+    s: float = 20.0 # for greit
+    ratio: float = 0.1# for greit
+    normalize: bool = False# for solver.solve()
+    log_scale:bool = False # for solver.solve()
+    method: str = "kotre" # for jac, greit
+    weight: str = "none" # for bp
+    parser: str = "meas_current" # for fwd
+    background:float = 1.0 # all solver
+    jac_normalized:bool=False # for jac
+    step:int=1 # for fwd adjacent step 1
 
+
+INV_SOLVER_PRESETS: dict[str, PyEitRecParams] = {
+    "JAC": PyEitRecParams(
+        solver_type= "JAC",
+        n=None, # disabled
+        method=["kotre", "lm", "dgn"],
+        p=0.2,
+        lamb=0.001,
+        weight=None, # disabled 
+    ),
+    "BP": PyEitRecParams(
+        solver_type= "BP",
+        p=None, # disabled
+        lamb=None, # disabled
+        n=None, # disabled
+        method=None, # disabled
+        weight=["none", "simple"]
+    ), 
+    "GREIT": PyEitRecParams(
+        solver_type= "GREIT",
+        method=["dist"], 
+        p=0.2,
+        lamb=1e-2,
+        n=32,
+        weight=None, # disabled 
+
+    )
+}
+
+def get_rec_params_preset(solver:str)->PyEitRecParams:
+    if solver not in INV_SOLVER_PRESETS.keys():
+        raise KeyError(f'Presets for {solver=} not defined')
+    return INV_SOLVER_PRESETS[solver]
 
 class InvSolverNotReadyError(BaseException):
     """"""
@@ -210,9 +249,9 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             "mesh": mesh,
             "el_pos": indx_elec,
             "ex_mat": self.eit_mdl.get_pyeit_ex_mat(),
-            "step": 1,
-            "perm": 1.0,
-            "jac_normalized": False,
+            "step": self.params.step,
+            "perm": self.params.background,
+            "jac_normalized": self.params.jac_normalized,
             "parser": self.params.parser,
         }
 
@@ -237,7 +276,12 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             data/measurements
         """
 
-        ds = self.inv_solver.solve(data.frame, data.ref_frame, self.params.normalize)
+        ds = self.inv_solver.solve(
+            v1=data.frame,
+            v0=data.ref_frame,
+            normalize=self.params.normalize,
+            log_scale=self.params.log_scale
+        )
 
         if isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
             _, _, ds = self.inv_solver.mask_value(ds, mask_value=np.NAN)
@@ -271,7 +315,15 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             self.inv_solver.setup(self.params.p, self.params.lamb, self.params.method)
 
         elif isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
-            self.inv_solver.setup(self.params.p, self.params.lamb, self.params.n)
+            self.inv_solver.setup(
+                method= self.params.method,
+                w=self.params.w,
+                p=self.params.p, 
+                lamb=self.params.lamb,
+                n=self.params.n,
+                s=self.params.s,
+                ratio=self.params.ratio,
+            )
 
         self.ready.set()  # activate the solver
 
@@ -348,6 +400,11 @@ if __name__ == "__main__":
     from eit_model.model import EITModel
 
     glob_utils.log.log.main_log()
+
+    p= PyEitRecParams(
+        method= ["kotre", "lm"]
+    )
+    print(p.method)
 
     eit_mdl = EITModel()
     eit_mdl.load_defaultmatfile()
