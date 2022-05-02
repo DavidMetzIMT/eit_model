@@ -74,6 +74,10 @@ class EITImage(object):
             Tuple[np.ndarray, np.ndarray,np.ndarray]: self.nodes, self.elems, self.data
         """
         return self.nodes, self.elems, self.data
+        
+    @property
+    def is_3D(self):
+        return self.elems.shape[1] == 4
 
 @dataclass
 class EITVoltMonitoring(object):

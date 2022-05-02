@@ -248,6 +248,10 @@ class EITImage2DPlot(EITCustomPlots):
             image (ImageEIT): [description]
             show (list[bool], optional): [description]. Defaults to [True*4].
         """
+
+        if image.is_3D:
+            return fig, ax
+
         if labels is None or not isinstance(labels, CustomLabels):
             labels = CustomLabels("Voltages", ["", ""], ["X axis", "Y axis"])
 
@@ -280,15 +284,15 @@ class EITImage2DPlot(EITCustomPlots):
         fig, ax = _add_elec_numbers(fig, ax, image)
         ax.set_aspect("equal", "box")
 
-        # if show[0]:
-        #     ax.set_title(labels.title)
+        if show[0]:
+            ax.set_title(labels.title)
         if show[1]:
             ax.axis("on")
             ax.set_xlabel(labels.axis[0])
         if show[2]:
             ax.set_ylabel(labels.axis[1])
         if show[3]:
-            fig.colorbar(im, ax=ax, location="right", shrink=0.6, label= labels.title)
+            fig.colorbar(im, ax=ax, location="right", shrink=0.6)# label= labels.title)
         return fig, ax
 
 
