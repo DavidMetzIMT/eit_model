@@ -1,24 +1,21 @@
 ### this code is called by EVAL.py
 
 import logging
-from typing import Any, Tuple
-import matplotlib.pyplot as plt
-import numpy as np
-import pyeit.eit.interp2d
-import pyeit.mesh.utils
-from matplotlib import axes, figure
 from abc import ABC, abstractmethod
-from enum import Enum
 from dataclasses import dataclass, field
-from eit_model.data import EITData, EITImage, EITMeasMonitoring
-import logging
+from enum import Enum
+from typing import Any, Tuple
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import pyeit.eit.interp2d
+import pyeit.mesh.utils
 # from eit_model.model import EITModel
 import seaborn as sns
-import matplotlib.pyplot as plt
+from matplotlib import axes, figure
 
+from eit_model.data import EITData, EITImage, EITMeasMonitoring
 
 logger = logging.getLogger(__name__)
 logging.getLogger("matplotlib.font_manager").disabled = True
@@ -78,6 +75,7 @@ class CustomLabels(object):
 class EITPlotsType(Enum):
     Image_2D = "Image_2D"
     Image_3D = "Image_3D"
+    Image_elem = "Image_elem"
     U_plot = "U_plot"
     Ch_plot = "Ch_plot"
     U_plot_diff = "U_plot_diff"
@@ -312,7 +310,7 @@ class EITElemsDataPlot(EITCustomPlots):
 
     def _post_init_(self):
         """Custom initialization"""
-        self.type = EITPlotsType.U_plot
+        self.type = EITPlotsType.Image_elem
 
     def plot(
         self,
@@ -334,14 +332,14 @@ class EITElemsDataPlot(EITCustomPlots):
         ax.set_title(labels.title)
         ax.set_xlabel(labels.axis[0])
         ax.set_ylabel(labels.axis[1])
-        legend = ax.legend(loc="upper left")
+        # legend = ax.legend(loc="upper left")
 
         return fig, ax
 
 if __name__ == "__main__":
 
-    from matplotlib import pyplot as plt
     import glob_utils.log.log
+    from matplotlib import pyplot as plt
     glob_utils.log.log.main_log()
 
     print()
