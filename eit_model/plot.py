@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pyeit.eit.interp2d
 import pyeit.mesh.utils
+
 # from eit_model.model import EITModel
 import seaborn as sns
 from matplotlib import axes, figure
@@ -19,6 +20,7 @@ from eit_model.data import EITData, EITImage, EITMeasMonitoring
 
 logger = logging.getLogger(__name__)
 logging.getLogger("matplotlib.font_manager").disabled = True
+logging.getLogger("matplotlib.colorbar").disabled = True
 
 
 def get_elem_nodal_data(fwd_model, perm):
@@ -197,29 +199,30 @@ class MeasErrorPlot(EITCustomPlots):
                 "Voltages", ["frame-ref", ""], ["Measurement #", "Voltages in [V]"]
             )
 
-        first= list(data.volt_frame.keys())[0]
-        ch = data.volt_frame[first].shape[0] #channel numbers, 16
+        first = list(data.volt_frame.keys())[0]
+        ch = data.volt_frame[first].shape[0]  # channel numbers, 16
 
         volt_frame = {k: v.flatten().real for k, v in data.volt_frame.items()}
-        
-        df = pd.DataFrame.from_dict(
-            volt_frame, orient='columns'
-        )
+
+        df = pd.DataFrame.from_dict(volt_frame, orient="columns")
         df = df.applymap(filter_value)
         dfm = df.reset_index().melt("index", var_name="frames", value_name="vals")
         dfm["index"] = dfm["index"].apply(lambda x: x % ch + 1)
 
-        df_plot = dfm.loc[dfm["vals"] ==1]
-        ax = sns.histplot(x="frames", y="index", data=df_plot, bins=100, cbar=True, cmap = 'coolwarm')
+        df_plot = dfm.loc[dfm["vals"] == 1]
+        ax = sns.histplot(
+            x="frames", y="index", data=df_plot, bins=100, cbar=True, cmap="coolwarm"
+        )
         # ax.set_xlabel("frame")
         ax.set_ylabel("channel voltage")
         return fig, ax
 
 
 def filter_value(x):
-        # x = np.linalg.norm(x)   # mag
+    # x = np.linalg.norm(x)   # mag
     # return 1 if np.abs(x) < 0.5 else 0    #this line is used for testing
     return 1 if np.abs(x) < 0.00001 else 0
+
 
 class EITImage2DPlot(EITCustomPlots):
     """TODO"""
@@ -237,6 +240,7 @@ class EITImage2DPlot(EITCustomPlots):
         options: Any = None,
         show: list[bool] = [True] * 4,
         colorbar_range: list[int] = None,
+        cmap: str = "viridis",
     ) -> Tuple[figure.Figure, axes.Axes]:
         """[summary]
 
@@ -245,6 +249,7 @@ class EITImage2DPlot(EITCustomPlots):
             ax (axes): [description]
             image (ImageEIT): [description]
             show (list[bool], optional): [description]. Defaults to [True*4].
+            cmap "viridis", "binary" https://matplotlib.org/stable/tutorials/colors/colormaps.html
         """
 
         if image.is_3D:
@@ -258,11 +263,11 @@ class EITImage2DPlot(EITCustomPlots):
 
         pts, tri, data = image.get_data_for_plot()
         # tri, pts, data= check_plot_data(pts, tri, data)
-        logger.debug(f'pts shape = {pts.shape}, tri shape = {tri.shape}')
+        # logger.debug(f"pts shape = {pts.shape}, tri shape = {tri.shape}")
 
         key = "elems_data"  # plot only Element data
         perm = np.real(data)
-        logger.debug(f'perm shape = {perm.shape}')
+        # logger.debug(f"perm shape = {perm.shape}")
 
         # if np.all(perm <= 1) and np.all(perm > 0):
         #     colorbar_range = [0, 1]
@@ -277,6 +282,7 @@ class EITImage2DPlot(EITCustomPlots):
             shading="flat",
             vmin=colorbar_range[0],
             vmax=colorbar_range[1],
+            cmap=cmap,
         )
 
         fig, ax = _add_elec_numbers(fig, ax, image)
@@ -290,11 +296,15 @@ class EITImage2DPlot(EITCustomPlots):
         if show[2]:
             ax.set_ylabel(labels.axis[1])
         if show[3]:
-            fig.colorbar(im, ax=ax, location="right", shrink=0.6)# label= labels.title)
+            fig.colorbar(
+                im, ax=ax, location="right", shrink=0.6
+            )  # label= labels.title)
         return fig, ax
 
 
-def _add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage)-> Tuple[figure.Figure, axes.Axes]:
+def _add_elec_numbers(
+    fig: figure.Figure, ax: axes.Axes, image: EITImage
+) -> Tuple[figure.Figure, axes.Axes]:
 
     elec_x = image.elec_pos[:, 0]
     elec_y = image.elec_pos[:, 1]
@@ -304,6 +314,7 @@ def _add_elec_numbers(fig: figure.Figure, ax: axes.Axes, image: EITImage)-> Tupl
         ax.text(x, y, i + 1, color="red", fontsize=12)
 
     return fig, ax
+
 
 class EITElemsDataPlot(EITCustomPlots):
     """Plot the elem data from an EITImage"""
@@ -336,10 +347,12 @@ class EITElemsDataPlot(EITCustomPlots):
 
         return fig, ax
 
+
 if __name__ == "__main__":
 
     import glob_utils.log.log
     from matplotlib import pyplot as plt
+
     glob_utils.log.log.main_log()
 
     print()
@@ -350,9 +363,9 @@ if __name__ == "__main__":
     v1 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
     v2 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
     v3 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
-    
+
     # d = EITMeasMonitoring(volt_frame={1:v1})
-    d = EITMeasMonitoring(volt_frame={1:v1, 2:v2, 3:v3})
+    d = EITMeasMonitoring(volt_frame={1: v1, 2: v2, 3: v3})
 
     fig, ax = plt.subplots(1, 1)
     p.plot(fig, ax, d)
