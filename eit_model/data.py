@@ -30,7 +30,7 @@ def build_EITData(ref: np.ndarray, frame: np.ndarray, label: str = "" ) -> EITDa
     meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1)), np.reshape((frame - ref), (-1, 1))))
     return EITData(meas, label)
 
-
+@dataclass
 class EITImage(object):
     data: np.ndarray
     label: str
@@ -38,11 +38,24 @@ class EITImage(object):
     elems: np.ndarray
     elec_pos: np.ndarray
 
-    def __init__(
-        self, data: np.ndarray = None,
-        label: str = "",
-        model: Union[eit_model.fwd_model.FEModel,eit_model.model.EITModel] = None
-    ) -> None:
+    def get_data_for_plot(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Return the nodes, elems and the elements data 
+        e.g. for plotting purpose
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray,np.ndarray]: self.nodes, self.elems, self.data
+        """
+        return self.nodes, self.elems, self.data
+
+    @property
+    def is_3D(self):
+        return self.elems.shape[1] == 4
+
+def build_EITImage(
+    data: np.ndarray = None,
+    label: str = "",
+    model: Union[eit_model.fwd_model.FEModel,eit_model.model.EITModel] = None
+    ) -> EITImage:
         """
         Return EITimage object with corresponding data
         
@@ -58,26 +71,13 @@ class EITImage(object):
         else:
             raise TypeError("argument 'model' should be FEModel or EITmodel")
 
-        self.label = label
-
-        # fem relevant data
-        self.data = fem.format_perm(data) if data is not None else fem.get_elems_data()
-        self.nodes= fem.nodes
-        self.elems= fem.elems
-        self.elec_pos= fem.elec_pos_orient()
-
-    def get_data_for_plot(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Return the nodes, elems and the elements data 
-        e.g. for plotting purpose
-
-        Returns:
-            Tuple[np.ndarray, np.ndarray,np.ndarray]: self.nodes, self.elems, self.data
-        """
-        return self.nodes, self.elems, self.data
-        
-    @property
-    def is_3D(self):
-        return self.elems.shape[1] == 4
+        return EITImage(
+            data=fem.format_perm(data) if data is not None else fem.get_elems_data(),
+            label=label,
+            nodes=fem.nodes,
+            elems=fem.elems,
+            elec_pos= fem.elec_pos_orient()
+        )
 
 @dataclass
 class EITVoltMonitoring(object):

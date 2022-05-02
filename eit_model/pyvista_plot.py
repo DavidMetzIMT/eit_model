@@ -9,7 +9,7 @@ from typing import Any
 
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
-from eit_model.data import EITImage
+from eit_model.data import EITImage, build_EITImage
 from eit_model.model import EITModel
 from eit_model.plot import EITElemsDataPlot, format_inputs, get_elem_nodal_data
 os.environ["QT_API"] = "pyqt5"
@@ -90,7 +90,7 @@ class PyVistaPlotWidget(MainWindow):
         self.ui.action_view_xz_plane.triggered.connect(self.plotter.view_xz)
         self.ui.action_view_yz_plane.triggered.connect(self.plotter.view_yz)
         self.ui.action_onoff_parallel_projection.triggered.connect(self._toggle_parallel_projection)
-        
+
         self.ui.action_show_mesh.triggered[bool].connect(self.ui.gB_mesh.setVisible)
         self.ui.action_show_mesh.setChecked(True)
         self.ui.action_show_elements_data_monitoring.triggered[bool].connect(self.ui.tabW_elem_data.setVisible)
@@ -162,7 +162,7 @@ class PyVistaPlotWidget(MainWindow):
 
     def _set_eit_mdl(self, eit_mdl:EITModel):
         """extract data from eit_mdl and create"""
-
+        # TODO test if 3D....???
         self.eit_mdl=eit_mdl
         self.ui.eit_model_name.setText(
             f"eit_model name : {self.eit_mdl.name}; file= {os.path.split(self.eit_mdl.file_path)[1]}"
@@ -185,7 +185,7 @@ class PyVistaPlotWidget(MainWindow):
         eit_mdl.load_matfile(path)
         self._set_eit_mdl(eit_mdl)
         self._set_eit_image(
-            EITImage(data= None, label= 'default', model= eit_mdl)
+            build_EITImage(data= None, label= 'default', model= eit_mdl)
         )
         self._plot_eit()
         self._plot_ortho_slice()
@@ -193,7 +193,7 @@ class PyVistaPlotWidget(MainWindow):
     def _set_eit_image(self, image: EITImage)->None:
         """"""
         self.eit_image =image
-        # todo control if len()of data is same as tri....??
+        # TODO control if len()of data is same as tri....??
         self.chamber.cell_data['Conductivity']= image.data
         self._update_data_in_plot()
     

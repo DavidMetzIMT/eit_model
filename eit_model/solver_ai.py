@@ -4,7 +4,7 @@ import numpy as np
 from eit_model.model import EITModel
 from eit_model.solver_abc import Solver,RecParams
 from typing import Any
-from eit_model.data import EITData, EITImage, build_EITData
+from eit_model.data import EITData, EITImage, build_EITData, build_EITImage
 from eit_ai.train_utils.workspace import AiWorkspace
 from eit_ai.train_utils.metadata import MetaData, reload_metadata
 from eit_ai.raw_data.matlab import MatlabSamples
@@ -112,7 +112,7 @@ class SolverAi(Solver):
             metadata=self.metadata, single_X=X, preprocess=True
         )
 
-        return EITImage(data=perm_real, label="rec image", model=self.eit_mdl)
+        return build_EITImage(data=perm_real, label="rec image", model=self.eit_mdl)
 
     def preprocess(self, data: EITData) -> np.ndarray:
 
