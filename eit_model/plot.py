@@ -264,6 +264,9 @@ class EITImage2DPlot(EITCustomPlots):
 
         key = "elems_data"  # plot only Element data
         perm = np.real(data)
+        # reshape (elems, 1) to (elems, )
+        if perm.ndim == 2:
+            perm = perm.reshape(-1)  
         logger.debug(f'perm shape = {perm.shape}')
 
         # if np.all(perm <= 1) and np.all(perm > 0):
@@ -283,6 +286,7 @@ class EITImage2DPlot(EITCustomPlots):
 
         fig, ax = _add_elec_numbers(fig, ax, image)
         ax.set_aspect("equal", "box")
+        # ax.set_axis_off()   
 
         if show[0]:
             ax.set_title(labels.title)

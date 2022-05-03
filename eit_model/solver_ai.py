@@ -28,7 +28,7 @@ class SolverAi(Solver):
 
         self.metadata: MetaData = None
         self.workspace: AiWorkspace = None
-        self.fwd_model: dict = None
+        self.eit_mdl = EITModel()
         self.params = AiRecParams()
 
     def _custom_preparation(self, params: Any = None) -> tuple[EITImage, EITData]:
@@ -75,7 +75,6 @@ class SolverAi(Solver):
         self.workspace = select_workspace(self.metadata)
         self.workspace.load_model(self.metadata)
         self.workspace.build_dataset(raw_samples, self.metadata)
-        self.fwd_model = self.workspace.getattr_dataset("fwd_model")
         voltages, _ = self.workspace.extract_samples(
             dataset_part="test", idx_samples="all"
         )
@@ -104,7 +103,7 @@ class SolverAi(Solver):
             EITImage: a reconstructed EIT image corresponding to the EIT
             data/measurements
         """
-
+        self.eit_mdl.load_matfile(self.metadata.raw_src_file[0]) #load info2py file as EITModel
         X = self.preprocess(data)
 
         logger.debug(f"{X=}\n, {data =}")
