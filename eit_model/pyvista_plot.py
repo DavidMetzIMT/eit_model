@@ -247,12 +247,12 @@ class PyVistaPlotWidget(MainWindow):
     def _show_electrodes(self):
         elec_pos=self.eit_mdl.fem.elec_pos_orient()[:, :3]
         elec_label=[str(x+1) for x in range(elec_pos.shape[0])]
-        for i in range (elec_pos.shape[0]):
-            elec_mesh = pv.Sphere(0.25, elec_pos[i])
-            single_electrode = elec_mesh.slice(normal='z',)
+        for i, elec_pos_i in enumerate(elec_pos):
+            elec_mesh = pv.Sphere(0.25, elec_pos_i)
+            single_electrode = elec_mesh.slice(normal='z')
             # electrodes.append(single_electrode)
-            self.plotter.add_mesh(single_electrode, color='green', line_width=3, pickable=True,)
-            self.plotter.add_point_labels(elec_pos, elec_label,font_size=15)
+            self.plotter.add_mesh(single_electrode, color='green', line_width=3, pickable=True, name=f'elec_contour_{i}')
+            self.plotter.add_point_labels(elec_pos, elec_label,font_size=15,name=f'elec_label_{i}')
             self.plotter.reset_camera()
 
     def _plot_eit(self): 
