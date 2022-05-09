@@ -98,6 +98,7 @@ class FwdModel:
 
     def __post_init__(self):
         self._create_meas_pattern()
+        self._create_meas_pattern_4_pyeit()
 
     def _create_meas_pattern(self):
         if self.stimulation is None:
@@ -112,7 +113,30 @@ class FwdModel:
         
         self._meas_pattern= block_diag(*l)
         logger.debug(f"{self._meas_pattern=}, {self._meas_pattern.shape=}")
+    
+    def _create_meas_pattern_4_pyeit(self):
+        """
+        Build the measurement pattern (subtract_row-voltage pairs [N, M])
+        for all excitations on boundary electrodes.
+        Notes
+        -----
+        ABMN Model.
+        A: current driving electrode,
+        B: current sink,
+        M, N: boundary electrodes, where v_diff = v_n - v_m.
+        """        
+
+        if self.stimulation is None:
+            return
         
+        pattern = np.zeros((len(self.stimulation), self.stimulation[0].meas_pattern.shape[0], 2))
+        for i, stim in enumerate(self.stimulation):
+            e_min = np.argmin(stim.meas_pattern,axis=1) # TODO verify the order!
+            e_plus = np.argmax(stim.meas_pattern,axis=1)
+            t= np.hstack((e_min, e_plus)) 
+            pattern[i] = t[np.newaxis,:,:]
+        self._meas_pattern_4_pyeit=np.int_(pattern)
+        logger.debug(f"{self._meas_pattern_4_pyeit=}, {self._meas_pattern_4_pyeit.shape=}")
 
     def for_FEModel(self) -> dict:
 
@@ -143,6 +167,9 @@ class FwdModel:
     @property
     def meas_pattern(self)->np.ndarray:
         return self._meas_pattern
+    @property
+    def meas_pattern_4_pyeit(self)->np.ndarray:
+        return self._meas_pattern_4_pyeit
 
 
 @dataclass
@@ -271,35 +298,43 @@ if __name__ == "__main__":
     import glob_utils.file.mat_utils
 
 
-    file_path = "E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat"
-    var_dict = glob_utils.file.mat_utils.load_mat(file_path)
-    m = glob_utils.file.mat_utils.MatFileStruct()
-    struct = m._extract_matfile(var_dict)
-    f = struct["fwd_model"]
-    f["electrode"] = mk_list_from_struct(f["electrode"], Electrode)
-    f["stimulation"] = mk_list_from_struct(f["stimulation"], Stimulation)
-
-    fmdl = FwdModel(**f)
-    print(fmdl.__dict__)
-    print("STIMMMMMMM", fmdl.stimulation[1])
-    print("STIMMMMMMM", fmdl.electrode[1])
-
-    print(fmdl.elec_pos_orient())
-    print(fmdl.ex_mat())
-
-    d = {
-        "000": {
-            "nodes": 1,  # 1D array
-            "z_contact": 2,
-            "pos": 3,  # 1Darray x,y,z,nx,ny,nz
-        },
-        "001": {
-            "nodes": 1,  # 1D array
-            "z_contact": 2,
-            "pos": 3,  # 1Darray x,y,z,nx,ny,nz
-        },
-    }
-
-    e = mk_list_from_struct(d, Electrode)
+    e= list(range(16))
     print(e)
-    print(e[1].nodes)
+    e_1 = [15-e_i for e_i in e]
+    print(e_1)
+
+
+    # file_path = "E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat"
+    # var_dict = glob_utils.file.mat_utils.load_mat(file_path)
+    # m = glob_utils.file.mat_utils.MatFileStruct()
+    # struct = m._extract_matfile(var_dict)
+    # f = struct["fwd_model"]
+    # f["electrode"] = mk_list_from_struct(f["electrode"], Electrode)
+    # f["stimulation"] = mk_list_from_struct(f["stimulation"], Stimulation)
+
+    # fmdl = FwdModel(**f)
+    # print(fmdl.__dict__)
+    # print("STIMMMMMMM", fmdl.stimulation[1])
+    # print("STIMMMMMMM", fmdl.electrode[1])
+
+    # print(fmdl.elec_pos_orient())
+    # print(fmdl.ex_mat())
+
+    # d = {
+    #     "000": {
+    #         "nodes": 1,  # 1D array
+    #         "z_contact": 2,
+    #         "pos": 3,  # 1Darray x,y,z,nx,ny,nz
+    #     },
+    #     "001": {
+    #         "nodes": 1,  # 1D array
+    #         "z_contact": 2,
+    #         "pos": 3,  # 1Darray x,y,z,nx,ny,nz
+    #     },
+    # }
+
+    # e = mk_list_from_struct(d, Electrode)
+    # print(e)
+    # print(e[1].nodes)
+
+    

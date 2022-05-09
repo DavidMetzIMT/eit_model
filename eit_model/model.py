@@ -149,7 +149,7 @@ class EITModel(object):
     def import_matlab_env(self, var_dict):
 
         m = glob_utils.file.mat_utils.MatFileStruct()
-        struct = m._extract_matfile(var_dict,verbose=False)
+        struct = m._extract_matfile(var_dict,verbose=True)
 
         fmdl = struct["fwd_model"]
         fmdl["electrode"] = eit_model.fwd_model.mk_list_from_struct(
@@ -239,6 +239,11 @@ class EITModel(object):
         """Return the excitaion matrix for pyeit which has to be 
         0 based indexing"""
         return self.excitation_mat()-1
+
+    def get_pyeit_meas_pattern(self)-> np.ndarray:
+        """Return the meas_pattern for pyeit which is 
+        0 based indexed, and of shape (n_exc, n_meas_per_exc, 2) """
+        return self.fwd_model.meas_pattern_4_pyeit
 
     @property
     def bbox(self) -> np.ndarray:
@@ -341,26 +346,42 @@ if __name__ == "__main__":
 
     import glob_utils.log.log
     glob_utils.log.log.main_log()
-    a = np.array([[1,2], [3,4]])
-    print(a)
+    a = np.array([[[1,2], [3,4], [3,4]]])
+
+    print(a.shape)
+    print(a.shape[::2] != (1,2))
     a= a.flatten()
     print(a)
 
 
-    dirname = os.path.dirname(__file__)
-    path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
-    p=  np.loadtxt(path)
+
+    def test2(ex_mat : np.ndarray,
+        meas_pattern: np.ndarray= None):
+        print(ex_mat, meas_pattern)
 
 
-    path = os.path.join(dirname, "default", "Chip_Ring_e16_17-32.txt")
-    path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
+    def test1(ex_mat, **kwargs):
+        test2(ex_mat, **kwargs)
 
-    eit = EITModel()
-    eit.load_defaultmatfile()
-    eit.load_chip_trans(path)
-    # print("pattern", eit.chip.transform_exc(p))
-    volt = np.array([list(range(32)) for _ in range(16)])+1
-    a, b =eit.get_meas_voltages(volt)
+    test1('ex_mat')
+
+
+
+    # dirname = os.path.dirname(__file__)
+    # path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
+    # p=  np.loadtxt(path)
+
+
+    # path = os.path.join(dirname, "default", "Chip_Ring_e16_17-32.txt")
+    # path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
+
+    # eit = EITModel()
+    # eit.load_defaultmatfile()
+    # eit.load_chip_trans(path)
+    # # print("pattern", eit.chip.transform_exc(p))
+    # volt = np.array([list(range(32)) for _ in range(16)])+1
+    # a, b =eit.get_meas_voltages(volt)
+
  
 
 

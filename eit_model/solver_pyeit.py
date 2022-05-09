@@ -150,7 +150,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         otherwise `ValueError` will be raised!!!
 
         """
-        mesh, indx_elec = self._get_mesh_idx_elec_for()
+        mesh, indx_elec = self._get_mesh_idx_elec_for_pyeit()
         self.fwd_solver = pyeit.eit.fem.Forward(mesh, indx_elec)
 
     def solve_fwd(self, image: EITImage) -> EITData:
@@ -244,7 +244,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         eit_solver_cls = INV_SOLVER_PYEIT[self.params.solver_type]
 
-        mesh, indx_elec = self._get_mesh_idx_elec_for()
+        mesh, indx_elec = self._get_mesh_idx_elec_for_pyeit()
         par_tmp = {
             "mesh": mesh,
             "el_pos": indx_elec,
@@ -253,6 +253,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             "perm": self.params.background,
             "jac_normalized": self.params.jac_normalized,
             "parser": self.params.parser,
+            "meas_pattern":self.eit_mdl.get_pyeit_meas_pattern(),
         }
 
         self.inv_solver: pyeit.eit.base.EitBase = eit_solver_cls(**par_tmp)
@@ -327,7 +328,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         self.ready.set()  # activate the solver
 
-    def _get_mesh_idx_elec_for(self):
+    def _get_mesh_idx_elec_for_pyeit(self):
         """Get and check compatility of mesh fro Pyeit
 
         Raises:
