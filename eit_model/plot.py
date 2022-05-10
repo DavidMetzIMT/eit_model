@@ -274,18 +274,27 @@ class EITImage2DPlot(EITCustomPlots):
         #     title = image.label + "\nNorm conduct"
         # else:
         #     title = image.label + "\nConduct"
-        im = ax.tripcolor(
-            pts[:, 0],
-            pts[:, 1],
-            tri,
-            perm,
-            shading="flat",
-            vmin=colorbar_range[0],
-            vmax=colorbar_range[1],
-            cmap=cmap,
-        )
+        try:
+            im = ax.tripcolor(
+                pts[:, 0],
+                pts[:, 1],
+                tri,
+                perm,
+                shading="flat",
+                vmin=colorbar_range[0],
+                vmax=colorbar_range[1],
+                cmap=cmap
+            )
+            fig, ax = _add_elec_numbers(fig, ax, image)
+            
+        except ValueError:
 
-        fig, ax = _add_elec_numbers(fig, ax, image)
+            im = ax.imshow(perm, interpolation="none", cmap=cmap)
+            ax.invert_yaxis()
+            #TODO electrode for greit
+
+
+        
         ax.set_aspect("equal", "box")
 
         if show[0]:
