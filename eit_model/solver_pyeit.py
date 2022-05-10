@@ -310,10 +310,16 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         # setup for each inv_solve type
         if isinstance(self.inv_solver, pyeit.eit.bp.BP):
-            self.inv_solver.setup(self.params.weight)
+            self.inv_solver.setup(
+                weight=self.params.weight
+            )
 
         elif isinstance(self.inv_solver, pyeit.eit.jac.JAC):
-            self.inv_solver.setup(self.params.p, self.params.lamb, self.params.method)
+            self.inv_solver.setup(
+                p=self.params.p,
+                lamb=self.params.lamb,
+                method=self.params.method
+            )
 
         elif isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
             self.inv_solver.setup(
