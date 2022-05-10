@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
 import logging
+from typing import Any
 import numpy as np
 from scipy.sparse import spmatrix
 from scipy.linalg import block_diag
+from pyeit.mesh import PyEITMesh
 
 logger = logging.getLogger(__name__)
 
@@ -105,14 +107,8 @@ class FwdModel:
             return
         
         l= [stim.meas_pattern.toarray() for stim in self.stimulation]
-        # for i, stim in enumerate(self.stimulation):
-        #     m_pattern= stim.meas_pattern.toarray()
-        #     tmp= m_pattern if i==0 else  np.vstack((tmp, m_pattern))
-
-        # n= len(self.stimulation)
-        
         self._meas_pattern= block_diag(*l)
-        logger.debug(f"{self._meas_pattern=}, {self._meas_pattern.shape=}")
+        # logger.debug(f"{self._meas_pattern=}, {self._meas_pattern.shape=}")
     
     def _create_meas_pattern_4_pyeit(self):
         """
@@ -136,7 +132,7 @@ class FwdModel:
             t= np.hstack((e_min, e_plus)) 
             pattern[i] = t[np.newaxis,:,:]
         self._meas_pattern_4_pyeit=np.int_(pattern)
-        logger.debug(f"{self._meas_pattern_4_pyeit=}, {self._meas_pattern_4_pyeit.shape=}")
+        # logger.debug(f"{self._meas_pattern_4_pyeit=}, {self._meas_pattern_4_pyeit.shape=}")
 
     def for_FEModel(self) -> dict:
 
@@ -203,9 +199,9 @@ class FEModel:
 
         return perm
 
-    def set_mesh(self, pts, tri, perm):
-        self.nodes = pts
-        self.elems = tri
+    def set_mesh(self, nodes:np.ndarray, elems:np.ndarray, perm:np.ndarray)->None:
+        self.nodes = nodes
+        self.elems = elems
         self.elems_data = self.format_perm(perm)
     
     def get_elems_data(self):
@@ -226,37 +222,28 @@ class FEModel:
     #     # self.elems= fwd_model['elems']
     #     # self.set_perm(perm)
 
-    def get_pyeit_mesh(self):
-        """Return mesh needed for pyeit package
-
-        mesh ={
-            'node':np.ndarray shape(n_nodes, 2) for 2D , shape(n_nodes, 3) for 3D ,
-            'element':np.ndarray shape(n_elems, 3) for 2D, shape(n_elems, 4) for 3D,
-            'perm':np.ndarray shape(n_elems,1),
-        }
+    def get_pyeit_mesh(self)-> PyEITMesh:
+        """
+        Return mesh needed for pyeit package
 
         Returns:
-            dict: mesh dictionary
+            PyEITMesh: mesh object
         """
-        return {
-            "node": self.nodes,
-            "element": self.elems,
-            "perm": self.elems_data,
-        }
-
-    def update_from_pyeit(self, mesh_obj: dict, indx_elec: np.ndarray) -> None:
-
-        # check if all keys are passed
-        std_keys = list(self.get_pyeit_mesh().keys())
-        keys_to_check = list(mesh_obj.keys())
-
-        if any(k not in keys_to_check for k in std_keys):
-            raise ValueError(
-                f"mesh_dat should be a dict with following keys: {std_keys}"
-            )
-
-        self.set_mesh(mesh_obj["node"], mesh_obj["element"], mesh_obj["perm"])
-        self.update_elec_from_pyeit(indx_elec)
+        return PyEITMesh(
+            node= self.nodes,
+            element= self.elems,
+            perm= self.elems_data,
+            el_pos=np.arange(self.n_elec), 
+        )
+    
+    def update_mesh(self, mesh: Any, update_elec:bool= False) -> None:
+        if isinstance(mesh, PyEITMesh):
+            self.update_from_pyeit(mesh,update_elec)
+    
+    def update_from_pyeit(self, mesh: PyEITMesh, update_elec:bool= False) -> None:
+        self.set_mesh(mesh.node, mesh.element, mesh.perm)
+        if update_elec:
+            self.update_elec_from_pyeit(mesh.el_pos)
 
     def get_data_for_plots(self):
         return self.nodes, self.elems, self.elems_data
@@ -287,6 +274,10 @@ class FEModel:
             nodes = i
             pos = self.nodes[i, :]
             self.electrode[i] = Electrode(nodes=nodes, pos=pos, shape=0.0)
+
+    @property
+    def n_elec(self):
+        return len(self.electrode)
 
 
 if __name__ == "__main__":
