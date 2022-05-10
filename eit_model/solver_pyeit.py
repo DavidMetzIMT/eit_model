@@ -178,7 +178,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         if not isinstance(image, EITImage):
             raise TypeError("EITImage expected")
 
-        v = self.fwd_solver.solve_eit(perm=image.data, init=True)
+        v = self.fwd_solver.solve_eit(perm=image.data)
 
         return build_EITData(v, v, "solved data")
 
