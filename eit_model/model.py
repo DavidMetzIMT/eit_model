@@ -8,6 +8,7 @@ import glob_utils.file.mat_utils
 import glob_utils.file.utils
 import glob_utils.args.check_type
 from scipy.sparse import csr_matrix
+from pyeit.mesh import PyEITMesh
 
 ## ======================================================================================================================================================
 ##
@@ -149,7 +150,7 @@ class EITModel(object):
     def import_matlab_env(self, var_dict):
 
         m = glob_utils.file.mat_utils.MatFileStruct()
-        struct = m._extract_matfile(var_dict,verbose=True)
+        struct = m._extract_matfile(var_dict,verbose=False)
 
         fmdl = struct["fwd_model"]
         fmdl["electrode"] = eit_model.fwd_model.mk_list_from_struct(
@@ -184,20 +185,15 @@ class EITModel(object):
         self.fem.refinement = value
 
     @property
-    def n_elec(self, all: bool = True):
-        return len(self.fem.electrode)
+    def n_elec(self):
+        return self.fem.n_elec
 
-    def pyeit_mesh(self) -> dict[str, np.ndarray]:
-        """Return mesh needed for pyeit package
-
-        mesh ={
-            'node':np.ndarray shape(n_nodes, 2) for 2D , shape(n_nodes, 3) for 3D ,
-            'element':np.ndarray shape(n_elems, 3) for 2D shape(n_elems, 4) for 3D,
-            'perm':np.ndarray shape(n_elems,1),
-        }
+    def pyeit_mesh(self) -> PyEITMesh:
+        """
+        Return mesh needed for pyeit package
 
         Returns:
-            dict: mesh dictionary
+            PyEITMesh: mesh object
         """
         return self.fem.get_pyeit_mesh()
 
@@ -288,19 +284,17 @@ class EITModel(object):
         """
         return self.fwd_model.meas_pattern
 
-    def update_mesh(self, mesh_data: Any, indx_elec: np.ndarray) -> None:
+    def update_mesh(self, mesh: Any, update_elec:bool= False) -> None:
         """Update FEM Mesh
 
         Args:
-            mesh_data (Any): can be a mesh dict from Pyeit
+            mesh_data (Any): can be a mesh from Pyeit
         """
-
-        if isinstance(mesh_data, dict):
-            self.fem.update_from_pyeit(mesh_data, indx_elec)
-            # update chamber setups to fit the new mesh...
-            m = np.max(self.fem.nodes, axis=0)
-            n = np.min(self.fem.nodes, axis=0)
-            self.set_bbox(np.round(m - n, 1))
+        self.fem.update_mesh(mesh, update_elec)
+        # update chamber setups to fit the new mesh...
+        m = np.max(self.fem.nodes, axis=0)
+        n = np.min(self.fem.nodes, axis=0)
+        self.set_bbox(np.round(m - n, 1))
     
     def get_meas_voltages(self, volt:np.ndarray)-> Tuple[np.ndarray, np.ndarray]:
 
