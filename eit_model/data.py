@@ -106,13 +106,14 @@ class EITVoltageLabels(object):
 
 @dataclass
 class EITVoltage(object):
-    """eit voltages 
-
-    volt (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
-    labels:EITVoltageLabels
+    """eit voltages
+    
+    Args:
+        volt (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
+        labels:EITVoltageLabels
 
     """
-    volt: np.ndarray 
+    volt: np.ndarray  # (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
     labels:EITVoltageLabels
     
     def get_frame_name(self)->str:
