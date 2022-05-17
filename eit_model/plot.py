@@ -267,6 +267,7 @@ class EITImage2DPlot(EITCustomPlots):
 
         key = "elems_data"  # plot only Element data
         perm = np.real(data)
+        perm = perm.flatten() # should be maybe made in EIT_image directly
         # logger.debug(f"perm shape = {perm.shape}")
 
         # if np.all(perm <= 1) and np.all(perm > 0):
