@@ -61,7 +61,7 @@ class Transformer:
             lab= f"||{lab}||"
         return lab
 
-    def run(self,x: np.ndarray) -> np.ndarray:
+    def run(self,x: np.ndarray, reshape:bool= True) -> np.ndarray:
         """_summary_
 
         Args:
@@ -80,13 +80,14 @@ class Transformer:
         for func in self._transform_funcs:
             if func is not None:
                 x = func(x)
-        x = np.reshape(x, (x.shape[0], 1))
+        if reshape:
+            x = np.reshape(x, (x.shape[0], 1))
         return x
 
 
 class Imaging(ABC):
 
-    transformer = [identity, identity]
+    transformer:Transformer = None
     label_imaging: str = ""
     label_meas = None
     lab_data: str = ""
