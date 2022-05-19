@@ -22,6 +22,7 @@ class ChipTranslatePins(object):
     _ch_to_elec:np.ndarray
     _elec_num:np.ndarray # model elec # shape (n_elec, 1)
     _ch_num:np.ndarray # corresponding chip pad/channnel # shape (n_elec, 1)
+    _file:str #file name 
 
     def __init__(self) -> None:
         dirname = os.path.dirname(__file__)
@@ -37,6 +38,7 @@ class ChipTranslatePins(object):
         self._ch_num = tmp[:, 1] 
         logger.debug(f"{self._elec_num=},{self._ch_num=}")
         self.build_trans_matrices()   
+        self._file= os.path.split(path)[1]
 
     def transform_exc(self, exc_pattern:np.ndarray )->np.ndarray:
         """transform the pattern given by the eit model with electrode 
@@ -333,6 +335,21 @@ class EITModel(object):
 
 
         return meas_data, meas_voltage 
+    
+    def get_protocol_info(self)->list[str]:
+        """
+        Return a list of string containing informaton saved in 
+        the analysis protocol
+
+        Returns:
+            list[str]: lines of informationss
+        """        
+        return [
+            f'Name: {self.name}',
+            f'FEM Refinement: {self.refinement}',
+            f'Chip config: {self.chip._file}',
+
+        ]
 
 
 
@@ -348,7 +365,6 @@ if __name__ == "__main__":
     print(a)
 
 
-
     def test2(ex_mat : np.ndarray,
         meas_pattern: np.ndarray= None):
         print(ex_mat, meas_pattern)
@@ -361,7 +377,7 @@ if __name__ == "__main__":
 
 
 
-    # dirname = os.path.dirname(__file__)
+    dirname = os.path.dirname(__file__)
     # path = os.path.join(dirname, "default", "Chip_Ring_e16_1-16.txt")
     # p=  np.loadtxt(path)
 
@@ -372,7 +388,7 @@ if __name__ == "__main__":
     # eit = EITModel()
     # eit.load_defaultmatfile()
     # eit.load_chip_trans(path)
-    # # print("pattern", eit.chip.transform_exc(p))
+    # # print("pattern", eit.chip.transform_exc(p))soli
     # volt = np.array([list(range(32)) for _ in range(16)])+1
     # a, b =eit.get_meas_voltages(volt)
 
@@ -381,10 +397,11 @@ if __name__ == "__main__":
 
 
 
-    # 
 
-    # eit = EITModel()
-    # eit.load_defaultmatfile()
+    
+    path = os.path.join(dirname, "default", "test_adop_infos2py.mat")
+    eit = EITModel()
+    eit.load_matfile(path)
 
     # m = np.max(eit.fem.nodes, axis=0)
     # n = np.min(eit.fem.nodes, axis=0)

@@ -33,6 +33,7 @@ def eit_data_transformations()->list[str]:
 class Transformer:
     transform: str
     show_abs: bool
+    _abs:str=field(init=False)
     _transform_funcs:list[Callable]=field(init=False)
 
     def __post_init__(self):
@@ -40,11 +41,10 @@ class Transformer:
         if self.transform not in DATA_TRANSFORMATIONS:
             raise Exception(f"The transformation {self.transform} unknown")
 
+        self._abs= "Abs" if self.show_abs else "Identity"
         self._transform_funcs = [
             DATA_TRANSFORMATIONS[self.transform],
-            DATA_TRANSFORMATIONS["Abs"]
-            if self.show_abs
-            else DATA_TRANSFORMATIONS["Identity"],
+            DATA_TRANSFORMATIONS[self._abs],
         ]
 
     def get_label_trans(self)->str:
@@ -91,7 +91,11 @@ class Imaging(ABC):
     label_imaging: str = ""
     label_meas = None
     lab_data: str = ""
-
+    _type_imaging:str= '' # should be defined in postinit
+    lab_ref_idx:str = ''
+    lab_ref_freq:str = ''
+    lab_frm_idx:str = ''
+    lab_frm_freq:str = ''
 
     def __init__(self, transform: str, show_abs: bool) -> None:
         super().__init__()
@@ -142,6 +146,22 @@ class Imaging(ABC):
         self.label_meas = [
             self.transformer.add_abs_bars(lab) for lab in self.label_meas
         ]
+    
+    def get_protocol_info(self)->list[str]:
+        """
+        Return a list of string containing informaton saved in 
+        the analysis protocol
+
+        Returns:
+            list[str]: lines of informationss
+        """        
+        return [
+            f'Type: {self._type_imaging}',
+            f'Data transformation: {self.transformer.transform}, show_abs: {self.transformer.show_abs}',
+            f'{self.lab_frm_freq}',
+            f'Ref. {self.lab_ref_idx}',
+            f'Ref. {self.lab_ref_freq}',
+        ]
 
 
     @abstractmethod
@@ -153,6 +173,7 @@ class AbsoluteImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "U"
+        self._type_imaging="Absolute imaging"
 
     def transform_voltages(
         self, v_ref: EITVoltage, v_meas: EITVoltage, eit_model: EITModel
@@ -195,7 +216,7 @@ class TimeDifferenceImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "\u0394U_t"  # ΔU_t
-
+        self._type_imaging="Time difference imaging"
 
     def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
@@ -228,6 +249,7 @@ class FrequenceDifferenceImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "\u0394U_f"  # ΔU_f
+        self._type_imaging="Frequence difference imaging"
 
     def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
@@ -262,6 +284,7 @@ class ChannelVoltageImaging(Imaging):
     def _post_init_(self):
         """Custom initialization"""
         self.label_imaging = "U_ch"
+        self._type_imaging="ChannelVoltageImaging"
 
     def make_EITplots_labels(self) -> dict[EITPlotsType, CustomLabels]:
 
