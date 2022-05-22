@@ -26,6 +26,7 @@ class EITData(object):
 
 @dataclass
 class EITImage(object):
+    """EITimage is a reconstruct eit image from the solver"""
     data: np.ndarray
     label: str
     nodes: np.ndarray
@@ -49,75 +50,114 @@ def build_EITImage(
     data: np.ndarray = None,
     label: str = "",
     model: Union[eit_model.fwd_model.FEModel,eit_model.model.EITModel] = None
-    ) -> EITImage:
-        """
-        Return EITimage object with corresponding data
-        
-        The image can be build from an FEModel or an EITmodel
-        if data is None or not passed the image.data are set to 1
-        """
-        if model is None:
-            raise ValueError("'model' not passed")
-        if isinstance(model, eit_model.fwd_model.FEModel):
-            fem= model
-        elif isinstance(model, eit_model.model.EITModel):
-            fem=model.fem
-        else:
-            raise TypeError("argument 'model' should be FEModel or EITmodel")
+) -> EITImage:
+    """
+    Return EITimage object with corresponding data
+    
+    The image can be build from an FEModel or an EITmodel
+    if data is None or not passed the image.data are set to 1
+    """
+    if model is None:
+        raise ValueError("'model' not passed")
+    if isinstance(model, eit_model.fwd_model.FEModel):
+        fem= model
+    elif isinstance(model, eit_model.model.EITModel):
+        fem=model.fem
+    else:
+        raise TypeError("argument 'model' should be FEModel or EITmodel")
 
-        return EITImage(
-            data=fem.format_perm(data) if data is not None else fem.get_elems_data(),
-            label=label,
-            nodes=fem.nodes,
-            elems=fem.elems,
-            elec_pos= fem.elec_pos_orient()
-        )
+    return EITImage(
+        data=fem.format_perm(data) if data is not None else fem.get_elems_data(),
+        label=label,
+        nodes=fem.nodes,
+        elems=fem.elems,
+        elec_pos= fem.elec_pos_orient()
+    )
+
 
 @dataclass
 class EITVoltMonitoring(object):
     """_summary_
 
-    volt_frame= dict of ndarray of shape (n_exc, n_ch) dtype = complex
+    volt_ref (ndarray): array of eit voltages of each electrode of the model
+        of shape(n_exc, n_elec), dtype = complex
+    volt_frame (ndarray): array of eit voltages of each electrode of the model
+        of shape(n_exc, n_elec), dtype = complex
 
     """
     volt_ref: np.ndarray 
     volt_frame: np.ndarray
     labels:Any=''
 
-@dataclass
-class EITVoltageLabels(object):
-    """_summary_
-
-    volt= ndarray of shape (n_exc, n_ch) dtype = complex
-    labels:
-
-    """
-    frame_idx:int # frame indx
-    freq:float # frame frequency
-    lab_frame_idx:str # frame indx label string
-    lab_frame_freq:str # frame frequency label string
-
 
 @dataclass
-class EITVoltage(object):
-    """eit voltages
-    
+class EITMeasVoltage(object):
+    """EITMeasVoltage of a frame 
+
     Args:
-        volt (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
-        labels:EITVoltageLabels
+        volt (ndarray): array of eit voltages of each electrode of the model
+        of shape(n_exc, n_elec), dtype = complex
+        meas (ndarray): measurements corresponding to the measurente pattern 
+        defined in the model of shape(n_meas, ), dtype = complex
+        frame_name (str) : frame name , default to 'Frame #x'
+        frame_freq (str) : frame frequency , default to 'Frequency xkHz'
 
-    """
-    volt: np.ndarray  # (ndarray): array of eit voltages of shape(n_exc, n_ch) dtype = complex
-    labels:EITVoltageLabels
-    
-    def get_frame_name(self)->str:
-        return self.labels.lab_frame_idx
-    def get_frame_freq(self)->str:
-        return self.labels.lab_frame_freq
+    """    
+    volt: np.ndarray 
+    meas: np.ndarray
+    frame_name:str= 'Frame #x'
+    frame_freq:str= 'Frequency xkHz'
+
+    def __post_init__(self):
+        self.meas=self.meas.flatten()
+
+
+# @dataclass
+# class EITVoltageLabels(object):
+#     """Gathers informations about an eit voltages 
+
+#     Args:
+#         frame_idx (int): frame indx
+#         freq (float): frame frequency in Hz
+#         lab_frame_idx (str): frame indx label string
+#         lab_frame_freq (str): frame frequency label string
+
+#     """    
+#     frame_idx:int # frame indx
+#     freq:float # frame frequency in Hz
+#     lab_frame_idx:str # frame indx label string
+#     lab_frame_freq:str # frame frequency label string
 
 
 @dataclass
-class EITMeasMonitoring(object):
+class EITFrameMeasuredChannelVoltage(object):
+    """EITMeasVoltage of a frame 
+
+    Args:
+        volt (ndarray): array of eit voltages of each electrode of the model
+        of shape(n_exc, n_ch), dtype = complex
+        name (str) : frame name , default to 'Frame #x'
+        freq (str) : frame frequency , default to 'Frequency xkHz'
+
+    """    
+    volt: np.ndarray 
+    name:str= 'Frame #x'
+    freq:str= 'Frequency xkHz'
+
+@dataclass
+class EITReconstructionData(object):
+    """
+
+    Args:
+        ref_frame: EITFrameMeasuredChannelVoltage
+        meas_frame: EITFrameMeasuredChannelVoltage
+    """
+    ref_frame: EITFrameMeasuredChannelVoltage
+    meas_frame: EITFrameMeasuredChannelVoltage
+
+
+@dataclass
+class EITMeasMonitoringData(object):
     """_summary_
 
     volt_frame= dict of ndarray of shape (n_exc, n_ch) dtype = complex

@@ -25,6 +25,9 @@ class ChipTranslatePins(object):
     _file:str #file name 
 
     def __init__(self) -> None:
+        """
+        _summary_
+        """
         dirname = os.path.dirname(__file__)
         path = os.path.join(dirname, "default", "Chip_Ring_e16_17-32.txt")
         self.load(path)            
@@ -299,41 +302,22 @@ class EITModel(object):
         self.set_bbox(np.round(m - n, 1))
     
     def get_meas_voltages(self, volt:np.ndarray)-> Tuple[np.ndarray, np.ndarray]:
-
         """_summary_
 
         Args:
-
             voltages (np.ndarray): shape(n_exc, n_channel)
 
         Returns:
             Tuple[np.ndarray, np.ndarray]: 
             - meas_voltage shape(n_exc, n_elec)
-            - meas_data  should be shape(n_meas*exc_1, )
+            - meas_data of shape(n_meas*n_exc, )
         """
         if volt is None:
             return np.array([])
         # get only the voltages of used electrode (0-n_el)
-
         meas_voltage = self.chip.trans_ch_to_elec(volt)
-        # logger.debug(f"{meas_voltage=}")
         # get the volgate corresponding to the meas_pattern and flatten
-
-        # meas_data1 = meas_voltage.dot(self.single_meas_pattern(0).T)
-        # meas_data1= meas_data1.flatten()
-        # logger.debug(f"flat {meas_data1=}")
-
         meas_data= self.meas_pattern().dot(meas_voltage.flatten())
-        # logger.debug(f"{meas_data=}{meas_data.shape=}")
-        # logger.debug(f"{meas_data1-meas_data=}")
-
-        # meas = (
-        #     meas_voltage.flatten()
-        #     if get_ch
-        #     else eit_model.meas_pattern(0).dot(meas_voltage.T).flatten()
-        # )
-
-
         return meas_data, meas_voltage 
     
     def get_protocol_info(self)->list[str]:
@@ -348,7 +332,6 @@ class EITModel(object):
             f'Name: {self.name}',
             f'FEM Refinement: {self.refinement}',
             f'Chip config: {self.chip._file}',
-
         ]
 
 

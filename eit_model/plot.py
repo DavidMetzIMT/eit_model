@@ -16,7 +16,7 @@ import pyeit.mesh.utils
 import seaborn as sns
 from matplotlib import axes, figure
 
-from eit_model.data import EITData, EITImage, EITMeasMonitoring
+from eit_model.data import EITData, EITImage, EITMeasMonitoringData
 
 logger = logging.getLogger(__name__)
 logging.getLogger("matplotlib.font_manager").disabled = True
@@ -188,7 +188,7 @@ class MeasErrorPlot(EITCustomPlots):
         self,
         fig: figure.Figure,
         ax: axes.Axes,
-        data: EITMeasMonitoring,
+        data: EITMeasMonitoringData,
         labels: CustomLabels = None,
         options: Any = None,
     ) -> Tuple[figure.Figure, axes.Axes]:
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     v3 = np.random.randn(16, 16) + np.random.randn(16, 16) * 1j
 
     # d = EITMeasMonitoring(volt_frame={1:v1})
-    d = EITMeasMonitoring(volt_frame={1: v1, 2: v2, 3: v3})
+    d = EITMeasMonitoringData(volt_frame={1: v1, 2: v2, 3: v3})
 
     fig, ax = plt.subplots(1, 1)
     p.plot(fig, ax, d)
