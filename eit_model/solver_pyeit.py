@@ -15,7 +15,7 @@ from pyeit.eit.protocol import PyEITProtocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 import matplotlib.pyplot as plt
 
-from eit_model.data import EITData, EITImage, build_EITData, build_EITImage
+from eit_model.data import EITData, EITImage, build_EITImage
 import eit_model.solver_abc
 
 logger = logging.getLogger(__name__)
@@ -180,7 +180,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         v = self.fwd_solver.solve_eit(perm=image.data)
 
-        return build_EITData(v, v, "solved data")
+        return EITData(v, v, v-v, "solved data")
 
     def simulate(
         self, image: EITImage = None, homogenious_conduct: float = 1.0
@@ -218,8 +218,9 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         data_h = self.solve_fwd(img_h)
         data_ih = self.solve_fwd(img_ih)
+        data_ds= data_ih.frame - data_h.frame
 
-        sim_data = build_EITData(data_ih.frame, data_h.frame, "simulated data")
+        sim_data = EITData(data_h.frame, data_ih.frame, data_ds, "simulated data")
         return sim_data, img_h, img_ih
     
 

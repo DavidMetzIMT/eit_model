@@ -6,29 +6,23 @@ import eit_model.model
 
 
 
-
 @dataclass
 class EITData(object):
-    meas: np.ndarray = np.array([])
+    """EITData are the data used from the solvers to reconstruct EITimage
+    
+    """
+    ref_frame:np.ndarray
+    frame:np.ndarray
+    ds: np.ndarray
     label: str = ""
 
-    @property
-    def ref_frame(self) -> np.ndarray:
-        return self.meas[:, 0]
+    def __post_init__(self):
+        self.ref_frame=self.ref_frame.flatten()
+        self.frame=self.frame.flatten()
+        self.ds=self.ds.flatten()
 
-    @property
-    def frame(self) -> np.ndarray:
-        return self.meas[:, 1]
-
-    @property
-    def ds(self) -> np.ndarray:
-        return self.meas[:, 2]
-
-def build_EITData(ref: np.ndarray, frame: np.ndarray, label: str = "" ) -> EITData:
-    """Build EITData out of a ref and a frame array"""
-    # TODO  mk som test on the shape of the inputs
-    meas = np.hstack((np.reshape(ref, (-1, 1)), np.reshape(frame, (-1, 1)), np.reshape((frame - ref), (-1, 1))))
-    return EITData(meas, label)
+        if self.ref_frame.shape!=self.frame.shape or self.ref_frame.shape!=self.ds.shape:
+            raise TypeError(f'Wrong shape {self.ref_frame.shape=},{self.frame.shape=},{self.ds.shape=}')
 
 @dataclass
 class EITImage(object):
