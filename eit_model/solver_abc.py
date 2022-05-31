@@ -23,6 +23,12 @@ class Solver(abc.ABC):
     ready: glob_utils.flags.flag.CustomFlag
 
     def __init__(self, model: eit_model.model.EITModel) -> None:
+        """
+        The Solver is responsible of the EIT image reconstructuion from EITData
+
+        Args:
+            model (eit_model.model.EITModel): _description_
+        """        
         super().__init__()
 
         self.eit_mdl = model
