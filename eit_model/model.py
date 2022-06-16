@@ -309,16 +309,16 @@ class EITModel(object):
 
         Returns:
             Tuple[np.ndarray, np.ndarray]: 
-            - meas_voltage shape(n_exc, n_elec)
-            - meas_data of shape(n_meas*n_exc, )
+            - voltage shape(n_exc, n_elec)
+            - data of shape(n_meas*n_exc, )
         """
         if volt is None:
             return np.array([])
         # get only the voltages of used electrode (0-n_el)
-        meas_voltage = self.chip.trans_ch_to_elec(volt)
+        voltage = self.chip.trans_ch_to_elec(volt)
         # get the volgate corresponding to the meas_pattern and flatten
-        meas_data= self.meas_pattern().dot(meas_voltage.flatten())
-        return meas_data, meas_voltage 
+        data= self.meas_pattern().dot(voltage.flatten())
+        return voltage, data 
     
     def get_protocol_info(self)->list[str]:
         """

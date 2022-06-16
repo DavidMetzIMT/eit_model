@@ -129,10 +129,10 @@ Corrections coeffs: {coef}'
         """Prepocee the data for the monitoring of the voltages. During
         this method the voltages values are send for ploting
         """
-        volt, meas= self.eit_model.get_meas_voltages(data.ref_frame.volt)
-        v_ref= EITMeasVoltage(volt, meas, data.ref_frame.name, data.ref_frame.freq)
-        volt, meas= self.eit_model.get_meas_voltages(data.meas_frame.volt)
-        v_meas= EITMeasVoltage(volt, meas, data.meas_frame.name, data.meas_frame.freq)
+        volt_ref, meas_ref= self.eit_model.get_meas_voltages(data.ref_frame.volt)
+        v_ref= EITMeasVoltage(volt_ref, meas_ref, data.ref_frame.name, data.ref_frame.freq)
+        volt_meas, meas_meas= self.eit_model.get_meas_voltages(data.meas_frame.volt)
+        v_meas= EITMeasVoltage(volt_meas, meas_meas, data.meas_frame.name, data.meas_frame.freq)
         return v_ref, v_meas
 
     def _process_rec_image(self, eit_data: EITData)-> EITImage:
@@ -155,11 +155,10 @@ Corrections coeffs: {coef}'
         """
         self.rec_enable = enable
 
-    def init_solver(self, solver: Solver, eit_model: EITModel, params: Any) -> tuple[EITImage, EITData]:
+    def init_solver(self, solver: Solver, params: Any) -> tuple[EITImage, EITData]:
         """Initialize internal solver, optionaly new solver or reconstruction
         parameters can be set before
         """
-        self.eit_model = eit_model
         self.solver: Solver = solver(self.eit_model)
         logger.info(f"Reconstructions solver selected: {self.solver}")
         return self.solver.prepare_rec(params)
