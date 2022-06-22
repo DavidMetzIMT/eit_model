@@ -12,7 +12,7 @@ import pyeit.mesh.shape
 import pyeit.eit.base
 import pyeit.eit.fem
 from pyeit.eit.protocol import PyEITProtocol
-from pyeit.mesh.wrapper import PyEITAnomaly_Circle
+from pyeit.mesh.wrapper import PyEITAnomaly_Circle,PyEITAnomaly_Ball
 import matplotlib.pyplot as plt
 
 from eit_model.data import EITData, EITImage, build_EITImage
@@ -47,6 +47,7 @@ class PyEitRecParams(eit_model.solver_abc.RecParams):
     background:float = 1.0 # all solver
     jac_normalized:bool=False # for jac
     step:int=1 # for fwd adjacent step 1
+    mesh_generation_mode_2D:bool=False # flag to allow 
 
 
 INV_SOLVER_PRESETS: dict[str, PyEitRecParams] = {
@@ -118,7 +119,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             params[Any]: Reconstruction parameters
         """
         logger.info("Preparation of PYEIT solver: Start...")
-        self._build_mesh_from_pyeit(import_design=True)
+        self._build_mesh_from_pyeit(params=params,import_design=True)
         # solver.init_fwd() # already set in inv less time of computation...
         self.init_inv(params=params, import_fwd=True)
         sim_data, img_h, img_ih = self.simulate()
@@ -204,10 +205,18 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
         
         if img_ih is None:  # create dummy image
             mesh = self.eit_mdl.pyeit_mesh()
-            anomaly =  PyEITAnomaly_Circle(
-                center=[0.4*self.eit_mdl.bbox[1, 0], 0.4*self.eit_mdl.bbox[1, 1]], 
-                r=self.eit_mdl.refinement/2, 
-                perm=10)
+            if self.eit_mdl.fem.is_2D:
+                anomaly =  PyEITAnomaly_Circle(
+                    center=[0.4*self.eit_mdl.bbox[1, 0], 0.4*self.eit_mdl.bbox[1, 1]], 
+                    r=self.eit_mdl.refinement/2, 
+                    perm=10)
+
+            elif self.eit_mdl.fem.is_3D: 
+                anomaly =  PyEITAnomaly_Ball(
+                    center=[0.4*self.eit_mdl.bbox[1, 0], 0.4*self.eit_mdl.bbox[1, 1], 0], 
+                    r=self.eit_mdl.refinement*2, 
+                    perm=10)
+            
             pyeit_mesh_ih = pyeit.mesh.set_perm(mesh, anomaly=anomaly, background=1.0)
             img_ih = build_EITImage(
                 data=pyeit_mesh_ih.perm,
@@ -360,7 +369,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         return mesh , protocol
 
-    def _build_mesh_from_pyeit(self, import_design: bool = False) -> None:
+    def _build_mesh_from_pyeit(self, params=PyEitRecParams, import_design: bool = False) -> None:
         """To use `PyEIT` solvers (fwd and inv) a special mesh is needed
         >> the first nodes correspond to the position of the Point electrodes
 
@@ -380,21 +389,50 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             import_design (bool, optional): Set to `True` if you want to import
             the eltrode position . Defaults to False.
         """
+        
 
         # set box and circle fucntion for a 2D cirle design fro pyEIT
-        bbox = self.eit_mdl.bbox[:, :2] if import_design else None
+        bbox = self.eit_mdl.bbox if import_design else None
+        p_fix=self.eit_mdl.elec_pos()
+
         # TODO cicl rect depending on the chamber type
         def circ(pts):
-            r = np.max(bbox) if bbox is not None else 1.0
+            """
+            define a circle in xy corresponding to the eit_model  setup
+            """
+            r = np.max(bbox[:, :2]) if bbox is not None else 1.0
             return pyeit.mesh.shape.circle(pts=pts, r=r)
+        
+        def cylinder(pts):
+            """
+            define a cylinder in xy corresponding to the eit_model setup
+            """
+            r = np.max([self.eit_mdl.setup.chamber.width/2,self.eit_mdl.setup.chamber.length/2])
+            h= self.eit_mdl.setup.chamber.height
+            return pyeit.mesh.shape.cylinder(pts=pts, pc=[0,0,0], r=r, h=h)
+        
+        if "Cylinder" in self.eit_mdl.setup.chamber.form:
+            fd= cylinder
+        elif"Cubic" in self.eit_mdl.setup.chamber.form:
+            raise NotImplementedError()
+            # fd= cube not implemented 
+        elif"2D_Circ" in self.eit_mdl.setup.chamber.form:
+            fd= circ
+
+        # special for only 2D!
+        if params.mesh_generation_mode_2D:
+            bbox= self.eit_mdl.bbox[:, :2] if bbox is not None else 1.0
+            fd= circ
+            p_fix=self.eit_mdl.elec_pos()[:, :2]
 
         par_tmp = {
             "n_el": self.eit_mdl.n_elec if import_design else 16,
-            "fd": circ,
+            "fd": fd,
             "h0": self.eit_mdl.refinement if import_design else 0.1,
             "bbox": bbox,
-            "p_fix": self.eit_mdl.elec_pos()[:, :2] if import_design else None,
+            "p_fix": p_fix if import_design else None,
         }
+        logger.debug(f'{par_tmp=}')
 
         pyeit_mesh = pyeit.mesh.create(**par_tmp)
         pyeit_mesh.print_stats()
