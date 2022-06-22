@@ -48,8 +48,9 @@ class PlotterEITElemsData(Plotter):
 
 class PyVistaPlotWidget(MainWindow):
 
-    def __init__(self, parent=None, show=True):
+    def __init__(self, eit_mdl:EITModel, parent=None, show=True):
         super().__init__()
+        self._is_closed:bool = False
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
@@ -117,9 +118,14 @@ class PyVistaPlotWidget(MainWindow):
         self.actors= {}
 
         if show:
-            self.show()
+            self.show()       
 
-        
+        self.set_eit_mdl(eit_mdl)
+        self.eit_image = build_EITImage(data= None, label= 'default', model= self.eit_mdl)
+
+    @property
+    def is_closed(self)->bool:
+        return self._is_closed
     
     def _init_cmap_menu_list(self)->None:
 
@@ -147,21 +153,16 @@ class PyVistaPlotWidget(MainWindow):
 
 
     def new_data(self, data=None):
-        
+        if not isinstance(self.eit_image, EITImage):
+            self.eit_image = build_EITImage(data= None, label= 'default', model= self.eit_mdl)
+        img= self.eit_image
+        img.data= np.random.random_sample(self.chamber.cell_data['Conductivity'].shape) * 3
+        self.plot_eit_image(img)
 
-        self.chamber.cell_data['Conductivity'] = (
-            data
-            if isinstance(data, np.ndarray)
-            else np.random.random_sample(self.data.shape) * 3
-        )
-
-        # self.plotter.update_scalars(data,)
-        range= self.plotter.mesh.get_data_range()
-        self.plotter.update_scalar_bar_range(range)
-        self._plot_ortho_slice()
-
-    def _set_eit_mdl(self, eit_mdl:EITModel):
+    def set_eit_mdl(self, eit_mdl:EITModel):
         """extract data from eit_mdl and create"""
+        if self.is_closed and not self.eit_mdl.fem.is_3D:
+            return
         # TODO test if 3D....???
         self.eit_mdl=eit_mdl
         self.ui.eit_model_name.setText(
@@ -175,6 +176,11 @@ class PyVistaPlotWidget(MainWindow):
         cells= _cells.astype(np.int64).flatten()
         cell_type = np.array([vtk.VTK_TETRA]*tri.shape[0], np.int8)
         self.chamber = pv.UnstructuredGrid(cells, cell_type, pts)
+        # self._set_eit_image(
+        #     build_EITImage(data= None, label= 'default', model= eit_mdl)
+        # )
+        self._plot_eit()
+        self._update_data_in_plot()
 
     def _load_dummy(self):
         """Load a default EIT model and generate default EITImage
@@ -183,33 +189,39 @@ class PyVistaPlotWidget(MainWindow):
         dirname = os.path.dirname(__file__)
         path = os.path.join(dirname, "default", "default_eit_model_new.mat")
         eit_mdl.load_matfile(path)
-        self._set_eit_mdl(eit_mdl)
-        self._set_eit_image(
-            build_EITImage(data= None, label= 'default', model= eit_mdl)
-        )
-        self._plot_eit()
-        self._plot_ortho_slice()
+        self.set_eit_mdl(eit_mdl)
+        # self._set_eit_image(
+        #     build_EITImage(data= None, label= 'default', model= eit_mdl)
+        # )
 
-    def _set_eit_image(self, image: EITImage)->None:
+    def plot_eit_image(self, image: EITImage= None)->None:
         """"""
-        self.eit_image =image
+        if self.is_closed:
+            return
+
+        if image is not None:
+            self.eit_image = image
+        self.canvas_elems_data.plot(self.eit_image)
+        self._set_data(self.eit_image.data)
+    
+    def _set_data(self, data:np.ndarray):
         # TODO control if len()of data is same as tri....??
-        self.chamber.cell_data['Conductivity']= image.data
+        self.chamber.cell_data['Conductivity']= data
         self._update_data_in_plot()
     
     def _update_data_in_plot(self):
         if not self.plot_eit_init:
             return
-        # self.plotter.update_scalars(data,)
-        range= self.plotter.mesh.get_data_range()
-        self.plotter.update_scalar_bar_range(range)
+        # self.plotter.update_scalars(,)
+        self._plot_eit()
+        # range= self.plotter.mesh.get_data_range()
+        # self.plotter.update_scalar_bar_range(range )
         self._plot_ortho_slice()
 
 
     def _set_cmap(self,val):
         self.cmap=CMAP[val]
-        self._plot_eit()
-        self._plot_ortho_slice()
+        self._update_data_in_plot()
 
     
     def _reset_slice_origin(self):
@@ -246,28 +258,29 @@ class PyVistaPlotWidget(MainWindow):
 
     def _show_electrodes(self):
         elec_pos=self.eit_mdl.fem.elec_pos_orient()[:, :3]
+        elec_orient=self.eit_mdl.fem.elec_pos_orient()[:, 3:]
+        elec_r=self.eit_mdl.setup.elec_layout.elecSize[0]/2#diameter
         elec_label=[str(x+1) for x in range(elec_pos.shape[0])]
         for i, elec_pos_i in enumerate(elec_pos):
-            elec_mesh = pv.Sphere(0.25, elec_pos_i)
-            single_electrode = elec_mesh.slice(normal='z')
+            elec_mesh = pv.Sphere(elec_r, elec_pos_i)
+            single_electrode = elec_mesh.slice(elec_orient[i,:])
             # electrodes.append(single_electrode)
             self.plotter.add_mesh(single_electrode, color='green', line_width=3, pickable=True, name=f'elec_contour_{i}')
-            self.plotter.add_point_labels(elec_pos, elec_label,font_size=15,name=f'elec_label_{i}')
+            self.plotter.add_point_labels(elec_pos, elec_label,font_size=15,name=f'elec_label_{i}', text_color='r', fill_shape=False)
             self.plotter.reset_camera()
 
     def _plot_eit(self): 
 
-        self.plotter.add_mesh(self.chamber, show_edges=True,name='chamber', opacity=0.1, cmap=self.cmap)
+        self.plotter.add_mesh(self.chamber, show_edges=True, edge_color='black',name='chamber', opacity=0.5, cmap=self.cmap, show_scalar_bar=False)
         self.plotter.add_text(text="Mesh", font_size=10, name='text_main')
+        self.plotter.set_background(color='white')
         # logger.debug(f'{self.plotter.__dict__}')
-        # self.plotter.add_scalar_bar('color', interactive=True, vertical=False)
+        self.plotter.add_scalar_bar('Conductity', interactive=False, vertical=False,  color=[0,0,0])
         # self.ortho_slice()
+        self.plotter.show_bounds(grid='front', location='outer', all_edges=True, color=[0,0,0])
         self.plotter.add_axes()
         self.plotter.reset_camera()
-
         self.plot_eit_init= True
-        
-        self.canvas_elems_data.plot(self.eit_image)
 
     def _mesh_dynamic_slicing(self, idx:int):
 
@@ -292,11 +305,16 @@ class PyVistaPlotWidget(MainWindow):
             if i not in idx:
                 continue
             slice = self.chamber.slice(normal=n, origin=origin)
-            s.add_mesh(self.chamber.outline(), name='outline')
-            s.add_mesh(slice, cmap= self.cmap, name='slice')
+            s.add_mesh(self.chamber.outline(), name='outline', edge_color=[0,0,0], show_scalar_bar=False)
+            s.add_mesh(slice, cmap= self.cmap, name='slice', show_scalar_bar=False)
             s.view_vector(n)
             s.add_axes()
             s.add_text(text=f'{t} = {origin[i]:.3f}', font_size=10, name="text")
+            s.set_background(color='white')
+
+    # def closeEvent(self, event):
+    #     self._is_closed = True
+    #     event.accept() # let the window close
 
 
 CMAP={
