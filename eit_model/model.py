@@ -333,6 +333,10 @@ class EITModel(object):
             f'FEM Refinement: {self.refinement}',
             f'Chip config: {self.chip._file}',
         ]
+    
+    @property
+    def is_3D(self)->bool:
+        return self.fem.is_3D
 
 
 

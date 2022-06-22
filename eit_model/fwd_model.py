@@ -278,6 +278,14 @@ class FEModel:
     @property
     def n_elec(self):
         return len(self.electrode)
+    
+    @property
+    def is_3D(self):
+        return self.elems.shape[1] == 4
+
+    @property
+    def is_2D(self):
+        return self.elems.shape[1] == 3
 
 
 if __name__ == "__main__":
