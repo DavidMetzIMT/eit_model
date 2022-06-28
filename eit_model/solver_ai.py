@@ -28,7 +28,6 @@ class SolverAi(Solver):
 
         self.metadata: MetaData = None
         self.workspace: AiWorkspace = None
-        self.fwd_model: dict = None
         self.params = AiRecParams()
 
     def _custom_preparation(self, params: Any = None) -> tuple[EITImage, EITData]:
@@ -41,7 +40,7 @@ class SolverAi(Solver):
             params[Any]: Reconstruction parameters
         """
         logger.info("Preparation of Ai reconstruction: Start...")
-
+        self.set_params(params)
         sim_data = self.initialize(params=self.params)
         img_rec = self.rec(sim_data)
         logger.info("Preparation of Ai reconstruction: Done")
@@ -71,24 +70,26 @@ class SolverAi(Solver):
         self.ready.clear()
 
         self.metadata = reload_metadata(dir_path=params.model_dirpath)
+        self.metadata._nb_samples = 10
+        self.metadata.idx_samples =None
         raw_samples = reload_samples(MatlabSamples(), self.metadata)
         self.workspace = select_workspace(self.metadata)
         self.workspace.load_model(self.metadata)
         self.workspace.build_dataset(raw_samples, self.metadata)
-        self.fwd_model = self.workspace.getattr_dataset("fwd_model")
-        voltages, _ = self.workspace.extract_samples(
-            dataset_part="test", idx_samples="all"
-        )
-        logger.debug(f"{voltages.shape}")
+        # voltages, _ = self.workspace.extract_samples(
+        #     dataset_part="test", idx_samples="all"
+        # )
+        # logger.debug(f"{voltages.shape}")
         perm_real = self.workspace.get_prediction(
-            metadata=self.metadata, single_X=voltages[2], preprocess=False
+            metadata=self.metadata, single_X=raw_samples.X[4], preprocess=False
         )
         logger.debug(f"{perm_real= }, {perm_real.shape}")
 
         # perm = format_inputs(self.fwd_model, perm_real)
 
         # logger.debug(f"perm shape = {perm.shape}")
-        init_data = EITData(voltages[2], voltages[2], voltages[2]-voltages[2], "solved data" )
+        
+        init_data = EITData(raw_samples.X[1], raw_samples.X[1], raw_samples.X[1]-raw_samples.X[1],  "solved data" )
         self.ready.set()
 
         return init_data
@@ -104,7 +105,6 @@ class SolverAi(Solver):
             EITImage: a reconstructed EIT image corresponding to the EIT
             data/measurements
         """
-
         X = self.preprocess(data)
 
         logger.debug(f"{X=}\n, {data =}")
@@ -115,6 +115,9 @@ class SolverAi(Solver):
         return build_EITImage(data=perm_real, label="rec image", model=self.eit_mdl)
 
     def preprocess(self, data: EITData) -> np.ndarray:
+        
+        logger.debug(f"{data.ds / data.ref_frame=} ")
+        logger.debug(f"{data.ds=} ")
 
         return data.ds / data.ref_frame if self.params.normalize else data.ds
     
