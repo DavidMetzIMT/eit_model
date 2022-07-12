@@ -27,7 +27,7 @@ class Electrode:
 def mk_list_from_struct(struct: dict, cls) -> list:
     """_summary_
 
-    the strcutude mimic a straucre aray from matlab
+    the structure mimic a structure array from matlab
     struct= {
         '000':{
             'nodes':1, # 1D array

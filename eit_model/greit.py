@@ -7,11 +7,6 @@ from eit_model.data import EITImage
 logger = logging.getLogger(__name__)
 
 
-
-
-
-
-
 def greit_filter(image: EITImage, threshold: float = None, div:float=4.0) -> EITImage:
     image_n = copy.deepcopy(image)
     image_n.data = image.data.copy()

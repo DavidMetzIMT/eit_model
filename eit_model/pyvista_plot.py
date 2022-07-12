@@ -312,9 +312,10 @@ class PyVistaPlotWidget(MainWindow):
             s.add_text(text=f'{t} = {origin[i]:.3f}', font_size=10, name="text")
             s.set_background(color='white')
 
-    # def closeEvent(self, event):
+    # def closeEvent(self, QCloseEvent):
     #     self._is_closed = True
-    #     event.accept() # let the window close
+    #     super().closeEvent(QCloseEvent)
+    #     self.plotter.Finalize()     ############################ important
 
 
 CMAP={
