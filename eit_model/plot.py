@@ -97,6 +97,11 @@ class EITCustomPlots(ABC):
     def _post_init_(self):
         """Custom initialization"""
         # self.type=PlotType.Image_2D
+    
+    @abstractmethod
+    def set_options(self,**kwargs):
+        """Custom initialization"""
+        # self.type=PlotType.Image_2D
 
     @abstractmethod
     def plot(
@@ -116,6 +121,10 @@ class EITUPlot(EITCustomPlots):
     def _post_init_(self):
         """Custom initialization"""
         self.type = EITPlotsType.U_plot
+        self.set_options()
+
+    def set_options(self,**kwargs):
+        """Custom initialization"""
 
     def plot(
         self,
@@ -123,7 +132,7 @@ class EITUPlot(EITCustomPlots):
         ax: axes.Axes,
         data: EITData,
         labels: CustomLabels = None,
-        options: Any = None,
+        
     ) -> Tuple[figure.Figure, axes.Axes]:
         """Plot"""
 
@@ -150,14 +159,16 @@ class EITUPlotDiff(EITCustomPlots):
     def _post_init_(self):
         """Custom initialization"""
         self.type = EITPlotsType.U_plot_diff
+        self.set_options()
 
+    def set_options(self,**kwargs):
+        """Custom initialization"""
     def plot(
         self,
         fig: figure.Figure,
         ax: axes.Axes,
         data: EITData,
         labels: CustomLabels = None,
-        options: Any = None,
     ) -> Tuple[figure.Figure, axes.Axes]:
         """Plot"""
 
@@ -183,6 +194,10 @@ class MeasErrorPlot(EITCustomPlots):
     def _post_init_(self):
         """Custom initialization"""
         self.type = EITPlotsType.MeasErrorPlot
+        self.set_options()
+
+    def set_options(self,**kwargs):
+        """Custom initialization"""
 
     def plot(
         self,
@@ -190,7 +205,6 @@ class MeasErrorPlot(EITCustomPlots):
         ax: axes.Axes,
         data: EITMeasMonitoringData,
         labels: CustomLabels = None,
-        options: Any = None,
     ) -> Tuple[figure.Figure, axes.Axes]:
         """Plot"""
 
@@ -230,6 +244,17 @@ class EITImage2DPlot(EITCustomPlots):
     def _post_init_(self):
         """Custom initialization"""
         self.type = EITPlotsType.Image_2D
+        self.set_options()
+
+    def set_options(self, show_electrode: bool= True,  show_axis: bool= True, show_colorbar: bool= True,
+        colorbar_range: list[int] = None,
+        cmap: str = "viridis",**kwargs):
+        """Custom initialization"""
+        self.show_electrode=show_electrode
+        self.show_axis=show_axis
+        self.show_colorbar=show_colorbar
+        self.colorbar_range=colorbar_range
+        self.cmap= cmap
 
     def plot(
         self,
@@ -237,10 +262,6 @@ class EITImage2DPlot(EITCustomPlots):
         ax: axes.Axes,
         image: EITImage,
         labels: CustomLabels = None,
-        options: Any = None,
-        show: list[bool] = [True] * 4,
-        colorbar_range: list[int] = None,
-        cmap: str = "viridis",
     ) -> Tuple[figure.Figure, axes.Axes]:
         """[summary]
 
@@ -258,23 +279,13 @@ class EITImage2DPlot(EITCustomPlots):
         if labels is None or not isinstance(labels, CustomLabels):
             labels = CustomLabels("Voltages", ["", ""], ["X axis", "Y axis"])
 
-        if colorbar_range is None:
-            colorbar_range = [None, None]
+        if self.colorbar_range is None:
+            self.colorbar_range = [None, None]
 
         pts, tri, data = image.get_data_for_plot()
-        # tri, pts, data= check_plot_data(pts, tri, data)
-        # logger.debug(f"pts shape = {pts.shape}, tri shape = {tri.shape}")
-
-        key = "elems_data"  # plot only Element data
         perm = np.real(data)
         perm = perm.flatten() # should be maybe made in EIT_image directly
-        # logger.debug(f"perm shape = {perm.shape}")
 
-        # if np.all(perm <= 1) and np.all(perm > 0):
-        #     colorbar_range = [0, 1]
-        #     title = image.label + "\nNorm conduct"
-        # else:
-        #     title = image.label + "\nConduct"
         try:
             im = ax.tripcolor(
                 pts[:, 0],
@@ -282,15 +293,16 @@ class EITImage2DPlot(EITCustomPlots):
                 tri,
                 perm,
                 shading="flat",
-                vmin=colorbar_range[0],
-                vmax=colorbar_range[1],
-                cmap=cmap
+                vmin=self.colorbar_range[0],
+                vmax=self.colorbar_range[1],
+                cmap=self.cmap
             )
-            fig, ax = _add_elec_numbers(fig, ax, image)
+            if self.show_electrode:
+                fig, ax = _add_elec_numbers(fig, ax, image)
             
         except ValueError:
 
-            im = ax.imshow(perm, interpolation="none", cmap=cmap)
+            im = ax.imshow(perm, interpolation="none", cmap=self.cmap)
             ax.invert_yaxis()
             #TODO electrode for greit
 
@@ -298,14 +310,16 @@ class EITImage2DPlot(EITCustomPlots):
         
         ax.set_aspect("equal", "box")
 
-        if show[0]:
+        if self.show_axis:
             ax.set_title(labels.title)
-        if show[1]:
+        # if self.show[1]:
             ax.axis("on")
             ax.set_xlabel(labels.axis[0])
-        if show[2]:
+        # if self.show[2]:
             ax.set_ylabel(labels.axis[1])
-        if show[3]:
+        else:
+            ax.axis("off")
+        if self.show_colorbar:
             fig.colorbar(
                 im, ax=ax, location="right", shrink=0.6
             )  # label= labels.title)
@@ -332,6 +346,10 @@ class EITElemsDataPlot(EITCustomPlots):
     def _post_init_(self):
         """Custom initialization"""
         self.type = EITPlotsType.Image_elem
+        self.set_options()
+
+    def set_options(self):
+        """Custom initialization"""
 
     def plot(
         self,
@@ -339,7 +357,6 @@ class EITElemsDataPlot(EITCustomPlots):
         ax: axes.Axes,
         image: EITImage,
         labels: CustomLabels = None,
-        options: Any = None,
     ) -> Tuple[figure.Figure, axes.Axes]:
         """Plot"""
 
