@@ -247,11 +247,12 @@ class EITImage2DPlot(EITCustomPlots):
         self.set_options()
 
     def set_options(self, show_electrode: bool= True,  show_axis: bool= True, show_colorbar: bool= True,
-        colorbar_range: list[int] = None,
+        colorbar_range: list[int] = None,show_title: bool= True,
         cmap: str = "viridis",**kwargs):
         """Custom initialization"""
         self.show_electrode=show_electrode
         self.show_axis=show_axis
+        self.show_title=show_title
         self.show_colorbar=show_colorbar
         self.colorbar_range=colorbar_range
         self.cmap= cmap
@@ -309,9 +310,9 @@ class EITImage2DPlot(EITCustomPlots):
 
         
         ax.set_aspect("equal", "box")
-
-        if self.show_axis:
+        if self.show_title:
             ax.set_title(labels.title)
+        if self.show_axis:
         # if self.show[1]:
             ax.axis("on")
             ax.set_xlabel(labels.axis[0])
