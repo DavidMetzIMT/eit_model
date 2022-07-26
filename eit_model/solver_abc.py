@@ -12,7 +12,6 @@ class RecParams:
     """Reconstruction parameter class"""
 
 
-
 class SolverNotReadyError(BaseException):
     """"""
 
@@ -28,7 +27,7 @@ class Solver(abc.ABC):
 
         Args:
             model (eit_model.model.EITModel): _description_
-        """        
+        """
         super().__init__()
 
         self.eit_mdl = model
@@ -97,4 +96,5 @@ class Solver(abc.ABC):
 
 if __name__ == "__main__":
     import glob_utils.log.log
+
     glob_utils.log.log.main_log()

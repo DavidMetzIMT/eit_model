@@ -15,10 +15,14 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(995, 647)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.centralwidget.sizePolicy().hasHeightForWidth()
+        )
         self.centralwidget.setSizePolicy(sizePolicy)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -83,7 +87,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.elems_data_layout)
         self.tabW_elem_data.addTab(self.tab, "")
         self.verticalLayout.addWidget(self.tabW_elem_data)
-        spacerItem = QtWidgets.QSpacerItem(300, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            300, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem)
         self.verticalLayout.setStretch(1, 1)
         self.verticalLayout.setStretch(2, 1)
@@ -118,7 +124,9 @@ class Ui_MainWindow(object):
         self.action_slicing_set_slices = QtWidgets.QAction(MainWindow)
         self.action_slicing_set_slices.setObjectName("action_slicing_set_slices")
         self.action_mesh_dynamic_slicing_x = QtWidgets.QAction(MainWindow)
-        self.action_mesh_dynamic_slicing_x.setObjectName("action_mesh_dynamic_slicing_x")
+        self.action_mesh_dynamic_slicing_x.setObjectName(
+            "action_mesh_dynamic_slicing_x"
+        )
         self.action_slicing_z_slicing = QtWidgets.QAction(MainWindow)
         self.action_slicing_z_slicing.setObjectName("action_slicing_z_slicing")
         self.action_new_data = QtWidgets.QAction(MainWindow)
@@ -130,7 +138,9 @@ class Ui_MainWindow(object):
         self.action_view_yz_plane = QtWidgets.QAction(MainWindow)
         self.action_view_yz_plane.setObjectName("action_view_yz_plane")
         self.action_onoff_parallel_projection = QtWidgets.QAction(MainWindow)
-        self.action_onoff_parallel_projection.setObjectName("action_onoff_parallel_projection")
+        self.action_onoff_parallel_projection.setObjectName(
+            "action_onoff_parallel_projection"
+        )
         self.action_mesh_reset = QtWidgets.QAction(MainWindow)
         self.action_mesh_reset.setObjectName("action_mesh_reset")
         self.actionremove = QtWidgets.QAction(MainWindow)
@@ -149,16 +159,22 @@ class Ui_MainWindow(object):
         self.action_slicing_reset_origin = QtWidgets.QAction(MainWindow)
         self.action_slicing_reset_origin.setObjectName("action_slicing_reset_origin")
         self.action_mesh_dynamic_slicing_y = QtWidgets.QAction(MainWindow)
-        self.action_mesh_dynamic_slicing_y.setObjectName("action_mesh_dynamic_slicing_y")
+        self.action_mesh_dynamic_slicing_y.setObjectName(
+            "action_mesh_dynamic_slicing_y"
+        )
         self.action_mesh_dynamic_slicing_z = QtWidgets.QAction(MainWindow)
-        self.action_mesh_dynamic_slicing_z.setObjectName("action_mesh_dynamic_slicing_z")
+        self.action_mesh_dynamic_slicing_z.setObjectName(
+            "action_mesh_dynamic_slicing_z"
+        )
         self.actionvir = QtWidgets.QAction(MainWindow)
         self.actionvir.setObjectName("actionvir")
         self.action_load_eit_image_dummy = QtWidgets.QAction(MainWindow)
         self.action_load_eit_image_dummy.setObjectName("action_load_eit_image_dummy")
         self.action_show_elements_data_monitoring = QtWidgets.QAction(MainWindow)
         self.action_show_elements_data_monitoring.setCheckable(True)
-        self.action_show_elements_data_monitoring.setObjectName("action_show_elements_data_monitoring")
+        self.action_show_elements_data_monitoring.setObjectName(
+            "action_show_elements_data_monitoring"
+        )
         self.action_show_mesh = QtWidgets.QAction(MainWindow)
         self.action_show_mesh.setCheckable(True)
         self.action_show_mesh.setChecked(True)
@@ -200,7 +216,9 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.gB_mesh.setTitle(_translate("MainWindow", "Mesh"))
-        self.tabW_elem_data.setTabText(self.tabW_elem_data.indexOf(self.tab), _translate("MainWindow", "Elem data"))
+        self.tabW_elem_data.setTabText(
+            self.tabW_elem_data.indexOf(self.tab), _translate("MainWindow", "Elem data")
+        )
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuMesh.setTitle(_translate("MainWindow", "Mesh"))
         self.menuSlicing.setTitle(_translate("MainWindow", "Slicing"))
@@ -211,15 +229,21 @@ class Ui_MainWindow(object):
         self.action_exit.setText(_translate("MainWindow", "Exit"))
         self.action_exit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
         self.action_mesh_refresh.setText(_translate("MainWindow", "Refresh"))
-        self.action_mesh_show_electrodes.setText(_translate("MainWindow", "Show electrodes"))
+        self.action_mesh_show_electrodes.setText(
+            _translate("MainWindow", "Show electrodes")
+        )
         self.action_slicing_set_slices.setText(_translate("MainWindow", "Set slices"))
-        self.action_mesh_dynamic_slicing_x.setText(_translate("MainWindow", "Dynamic slicing X"))
+        self.action_mesh_dynamic_slicing_x.setText(
+            _translate("MainWindow", "Dynamic slicing X")
+        )
         self.action_slicing_z_slicing.setText(_translate("MainWindow", "Z slicing"))
         self.action_new_data.setText(_translate("MainWindow", "new_data"))
         self.action_view_xy_plane.setText(_translate("MainWindow", "View XY plane"))
         self.action_view_xz_plane.setText(_translate("MainWindow", "View XZ plane"))
         self.action_view_yz_plane.setText(_translate("MainWindow", "View YZ plane"))
-        self.action_onoff_parallel_projection.setText(_translate("MainWindow", "Enable parallel projection"))
+        self.action_onoff_parallel_projection.setText(
+            _translate("MainWindow", "Enable parallel projection")
+        )
         self.action_mesh_reset.setText(_translate("MainWindow", "Reset"))
         self.actionremove.setText(_translate("MainWindow", "remove"))
         self.action3_1.setText(_translate("MainWindow", "3|1"))
@@ -227,17 +251,28 @@ class Ui_MainWindow(object):
         self.action_show_slice_x.setText(_translate("MainWindow", "Show slice X"))
         self.action_show_slice_y.setText(_translate("MainWindow", "Show slice Y"))
         self.action_show_slice_z.setText(_translate("MainWindow", "Show slice Z"))
-        self.action_slicing_reset_origin.setText(_translate("MainWindow", "Reset slice origin"))
-        self.action_mesh_dynamic_slicing_y.setText(_translate("MainWindow", "Dynamic slicing Y"))
-        self.action_mesh_dynamic_slicing_z.setText(_translate("MainWindow", "Dynamic slicing Z"))
+        self.action_slicing_reset_origin.setText(
+            _translate("MainWindow", "Reset slice origin")
+        )
+        self.action_mesh_dynamic_slicing_y.setText(
+            _translate("MainWindow", "Dynamic slicing Y")
+        )
+        self.action_mesh_dynamic_slicing_z.setText(
+            _translate("MainWindow", "Dynamic slicing Z")
+        )
         self.actionvir.setText(_translate("MainWindow", "vir"))
-        self.action_load_eit_image_dummy.setText(_translate("MainWindow", "Load EIT image dummy"))
-        self.action_show_elements_data_monitoring.setText(_translate("MainWindow", "Show elements data monitoring"))
+        self.action_load_eit_image_dummy.setText(
+            _translate("MainWindow", "Load EIT image dummy")
+        )
+        self.action_show_elements_data_monitoring.setText(
+            _translate("MainWindow", "Show elements data monitoring")
+        )
         self.action_show_mesh.setText(_translate("MainWindow", "Show mesh"))
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

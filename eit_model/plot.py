@@ -97,9 +97,9 @@ class EITCustomPlots(ABC):
     def _post_init_(self):
         """Custom initialization"""
         # self.type=PlotType.Image_2D
-    
+
     @abstractmethod
-    def set_options(self,**kwargs):
+    def set_options(self, **kwargs):
         """Custom initialization"""
         # self.type=PlotType.Image_2D
 
@@ -123,7 +123,7 @@ class EITUPlot(EITCustomPlots):
         self.type = EITPlotsType.U_plot
         self.set_options()
 
-    def set_options(self,**kwargs):
+    def set_options(self, **kwargs):
         """Custom initialization"""
 
     def plot(
@@ -132,7 +132,6 @@ class EITUPlot(EITCustomPlots):
         ax: axes.Axes,
         data: EITData,
         labels: CustomLabels = None,
-        
     ) -> Tuple[figure.Figure, axes.Axes]:
         """Plot"""
 
@@ -161,8 +160,9 @@ class EITUPlotDiff(EITCustomPlots):
         self.type = EITPlotsType.U_plot_diff
         self.set_options()
 
-    def set_options(self,**kwargs):
+    def set_options(self, **kwargs):
         """Custom initialization"""
+
     def plot(
         self,
         fig: figure.Figure,
@@ -196,7 +196,7 @@ class MeasErrorPlot(EITCustomPlots):
         self.type = EITPlotsType.MeasErrorPlot
         self.set_options()
 
-    def set_options(self,**kwargs):
+    def set_options(self, **kwargs):
         """Custom initialization"""
 
     def plot(
@@ -246,16 +246,23 @@ class EITImage2DPlot(EITCustomPlots):
         self.type = EITPlotsType.Image_2D
         self.set_options()
 
-    def set_options(self, show_electrode: bool= True,  show_axis: bool= True, show_colorbar: bool= True,
-        colorbar_range: list[int] = None,show_title: bool= True,
-        cmap: str = "viridis",**kwargs):
+    def set_options(
+        self,
+        show_electrode: bool = True,
+        show_axis: bool = True,
+        show_colorbar: bool = True,
+        colorbar_range: list[int] = None,
+        show_title: bool = True,
+        cmap: str = "viridis",
+        **kwargs
+    ):
         """Custom initialization"""
-        self.show_electrode=show_electrode
-        self.show_axis=show_axis
-        self.show_title=show_title
-        self.show_colorbar=show_colorbar
-        self.colorbar_range=colorbar_range
-        self.cmap= cmap
+        self.show_electrode = show_electrode
+        self.show_axis = show_axis
+        self.show_title = show_title
+        self.show_colorbar = show_colorbar
+        self.colorbar_range = colorbar_range
+        self.cmap = cmap
 
     def plot(
         self,
@@ -285,7 +292,7 @@ class EITImage2DPlot(EITCustomPlots):
 
         pts, tri, data = image.get_data_for_plot()
         perm = np.real(data)
-        perm = perm.flatten() # should be maybe made in EIT_image directly
+        perm = perm.flatten()  # should be maybe made in EIT_image directly
 
         try:
             im = ax.tripcolor(
@@ -296,27 +303,25 @@ class EITImage2DPlot(EITCustomPlots):
                 shading="flat",
                 vmin=self.colorbar_range[0],
                 vmax=self.colorbar_range[1],
-                cmap=self.cmap
+                cmap=self.cmap,
             )
             if self.show_electrode:
                 fig, ax = _add_elec_numbers(fig, ax, image)
-            
+
         except ValueError:
 
             im = ax.imshow(perm, interpolation="none", cmap=self.cmap)
             ax.invert_yaxis()
-            #TODO electrode for greit
+            # TODO electrode for greit
 
-
-        
         ax.set_aspect("equal", "box")
         if self.show_title:
             ax.set_title(labels.title)
         if self.show_axis:
-        # if self.show[1]:
+            # if self.show[1]:
             ax.axis("on")
             ax.set_xlabel(labels.axis[0])
-        # if self.show[2]:
+            # if self.show[2]:
             ax.set_ylabel(labels.axis[1])
         else:
             ax.axis("off")

@@ -8,6 +8,7 @@ from pyeit.mesh import PyEITMesh
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class Stimulation:
     stimulation: str = "Amperes"
@@ -105,11 +106,11 @@ class FwdModel:
     def _create_meas_pattern(self):
         if self.stimulation is None:
             return
-        
-        l= [stim.meas_pattern.toarray() for stim in self.stimulation]
-        self._meas_pattern= block_diag(*l)
+
+        l = [stim.meas_pattern.toarray() for stim in self.stimulation]
+        self._meas_pattern = block_diag(*l)
         # logger.debug(f"{self._meas_pattern=}, {self._meas_pattern.shape=}")
-    
+
     def _create_meas_pattern_4_pyeit(self):
         """
         Build the measurement pattern (subtract_row-voltage pairs [N, M])
@@ -120,26 +121,28 @@ class FwdModel:
         A: current driving electrode,
         B: current sink,
         M, N: boundary electrodes, where v_diff = v_n - v_m.
-        """        
+        """
 
         if self.stimulation is None:
             return
-        
-        pattern = np.zeros((len(self.stimulation), self.stimulation[0].meas_pattern.shape[0], 2))
+
+        pattern = np.zeros(
+            (len(self.stimulation), self.stimulation[0].meas_pattern.shape[0], 2)
+        )
         for i, stim in enumerate(self.stimulation):
-            e_min = np.argmin(stim.meas_pattern,axis=1) # TODO verify the order!
-            e_plus = np.argmax(stim.meas_pattern,axis=1)
-            t= np.hstack((e_min, e_plus)) 
-            pattern[i] = t[np.newaxis,:,:]
-        self._meas_pattern_4_pyeit=np.int_(pattern)
+            e_min = np.argmin(stim.meas_pattern, axis=1)  # TODO verify the order!
+            e_plus = np.argmax(stim.meas_pattern, axis=1)
+            t = np.hstack((e_min, e_plus))
+            pattern[i] = t[np.newaxis, :, :]
+        self._meas_pattern_4_pyeit = np.int_(pattern)
         # logger.debug(f"{self._meas_pattern_4_pyeit=}, {self._meas_pattern_4_pyeit.shape=}")
 
     def for_FEModel(self) -> dict:
 
         return {
             "nodes": self.nodes,
-            "elems": self.elems-1, #python is 0 based indexing
-            "boundary": self.boundary, 
+            "elems": self.elems - 1,  # python is 0 based indexing
+            "boundary": self.boundary,
             "gnd_node": self.gnd_node,
             "electrode": self.electrode,
         }
@@ -158,20 +161,21 @@ class FwdModel:
             e_in = np.argmin(stim.stim_pattern)
             e_out = np.argmax(stim.stim_pattern)
             ex_mat[i, :] = [e_in, e_out]
-        return np.int_(ex_mat) + 1 
-    
+        return np.int_(ex_mat) + 1
+
     @property
-    def meas_pattern(self)->np.ndarray:
+    def meas_pattern(self) -> np.ndarray:
         return self._meas_pattern
+
     @property
-    def meas_pattern_4_pyeit(self)->np.ndarray:
+    def meas_pattern_4_pyeit(self) -> np.ndarray:
         return self._meas_pattern_4_pyeit
 
 
 @dataclass
 class FEModel:
-    nodes: np.ndarray= None
-    elems: np.ndarray= None
+    nodes: np.ndarray = None
+    elems: np.ndarray = None
     elems_data: np.ndarray = None
     boundary: np.ndarray = None
     gnd_node: int = 0
@@ -199,11 +203,11 @@ class FEModel:
 
         return perm
 
-    def set_mesh(self, nodes:np.ndarray, elems:np.ndarray, perm:np.ndarray)->None:
+    def set_mesh(self, nodes: np.ndarray, elems: np.ndarray, perm: np.ndarray) -> None:
         self.nodes = nodes
         self.elems = elems
         self.elems_data = self.format_perm(perm)
-    
+
     def get_elems_data(self):
         """Return the elements data
         if they are not defined a one vector will be returned
@@ -211,7 +215,11 @@ class FEModel:
         Returns:
             _type_: _description_
         """
-        return self.elems_data if self.elems_data is not None else np.ones((self.elems.shape[0],1))
+        return (
+            self.elems_data
+            if self.elems_data is not None
+            else np.ones((self.elems.shape[0], 1))
+        )
 
     # def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
     #     perm=format_inputs(fwd_model, perm)
@@ -222,7 +230,7 @@ class FEModel:
     #     # self.elems= fwd_model['elems']
     #     # self.set_perm(perm)
 
-    def get_pyeit_mesh(self)-> PyEITMesh:
+    def get_pyeit_mesh(self) -> PyEITMesh:
         """
         Return mesh needed for pyeit package
 
@@ -230,17 +238,17 @@ class FEModel:
             PyEITMesh: mesh object
         """
         return PyEITMesh(
-            node= self.nodes,
-            element= self.elems,
-            perm= self.elems_data,
-            el_pos=np.arange(self.n_elec), 
+            node=self.nodes,
+            element=self.elems,
+            perm=self.elems_data,
+            el_pos=np.arange(self.n_elec),
         )
-    
-    def update_mesh(self, mesh: Any, update_elec:bool= False) -> None:
+
+    def update_mesh(self, mesh: Any, update_elec: bool = False) -> None:
         if isinstance(mesh, PyEITMesh):
-            self.update_from_pyeit(mesh,update_elec)
-    
-    def update_from_pyeit(self, mesh: PyEITMesh, update_elec:bool= False) -> None:
+            self.update_from_pyeit(mesh, update_elec)
+
+    def update_from_pyeit(self, mesh: PyEITMesh, update_elec: bool = False) -> None:
         self.set_mesh(mesh.node, mesh.element, mesh.perm)
         if update_elec:
             self.update_elec_from_pyeit(mesh.el_pos)
@@ -278,7 +286,7 @@ class FEModel:
     @property
     def n_elec(self):
         return len(self.electrode)
-    
+
     @property
     def is_3D(self):
         return self.elems.shape[1] == 4
@@ -296,12 +304,10 @@ if __name__ == "__main__":
 
     import glob_utils.file.mat_utils
 
-
-    e= list(range(16))
+    e = list(range(16))
     print(e)
-    e_1 = [15-e_i for e_i in e]
+    e_1 = [15 - e_i for e_i in e]
     print(e_1)
-
 
     # file_path = "E:/Software_dev/Matlab_datasets/20220307_093210_Dataset_name/Dataset_name_infos2py.mat"
     # var_dict = glob_utils.file.mat_utils.load_mat(file_path)
@@ -335,5 +341,3 @@ if __name__ == "__main__":
     # e = mk_list_from_struct(d, Electrode)
     # print(e)
     # print(e[1].nodes)
-
-    

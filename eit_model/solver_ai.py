@@ -2,7 +2,7 @@ from posixpath import dirname
 from matplotlib.pyplot import plot
 import numpy as np
 from eit_model.model import EITModel
-from eit_model.solver_abc import Solver,RecParams
+from eit_model.solver_abc import Solver, RecParams
 from typing import Any
 from eit_model.data import EITData, EITImage, build_EITImage
 from eit_ai.train_utils.workspace import AiWorkspace
@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 
 @dataclass
 class AiRecParams(RecParams):
-    model_dirpath: str = ''
+    model_dirpath: str = ""
     normalize: bool = False
 
 
@@ -71,7 +71,7 @@ class SolverAi(Solver):
 
         self.metadata = reload_metadata(dir_path=params.model_dirpath)
         self.metadata._nb_samples = 10
-        self.metadata.idx_samples =None
+        self.metadata.idx_samples = None
         raw_samples = reload_samples(MatlabSamples(), self.metadata)
         self.workspace = select_workspace(self.metadata)
         self.workspace.load_model(self.metadata)
@@ -88,8 +88,13 @@ class SolverAi(Solver):
         # perm = format_inputs(self.fwd_model, perm_real)
 
         # logger.debug(f"perm shape = {perm.shape}")
-        
-        init_data = EITData(raw_samples.X[1], raw_samples.X[1], raw_samples.X[1]-raw_samples.X[1],  "solved data" )
+
+        init_data = EITData(
+            raw_samples.X[1],
+            raw_samples.X[1],
+            raw_samples.X[1] - raw_samples.X[1],
+            "solved data",
+        )
         self.ready.set()
 
         return init_data
@@ -115,12 +120,12 @@ class SolverAi(Solver):
         return build_EITImage(data=perm_real, label="rec image", model=self.eit_mdl)
 
     def preprocess(self, data: EITData) -> np.ndarray:
-        
+
         logger.debug(f"{data.ds / data.ref_frame=} ")
         logger.debug(f"{data.ds=} ")
 
         return data.ds / data.ref_frame if self.params.normalize else data.ds
-    
+
     def set_params(self, params: AiRecParams = None) -> None:
         """Set the reconstrustions parameters for each inverse solver type
 
@@ -149,7 +154,7 @@ if __name__ == "__main__":
 
     glob_utils.log.log.main_log()
 
-    file_path = r'C:\Users\ryanzzzjw\Desktop\eit_model\eit_model\default\\2D_Dataset_infos2py.mat'
+    file_path = r"C:\Users\ryanzzzjw\Desktop\eit_model\eit_model\default\\2D_Dataset_infos2py.mat"
     eit_mdl = EITModel()
     eit_mdl.load_matfile(file_path=file_path)
 
@@ -167,7 +172,7 @@ if __name__ == "__main__":
     # print(v)
     rec = solver.rec(v)
 
-    logger.debug(f'rec shape = {rec.data.shape}')
+    logger.debug(f"rec shape = {rec.data.shape}")
     p = EITImage2DPlot()
     fig, ax = plt.subplots(1, 1)
     p.plot(fig, ax, rec)

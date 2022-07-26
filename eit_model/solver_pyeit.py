@@ -12,7 +12,7 @@ import pyeit.mesh.shape
 import pyeit.eit.base
 import pyeit.eit.fem
 from pyeit.eit.protocol import PyEITProtocol
-from pyeit.mesh.wrapper import PyEITAnomaly_Circle,PyEITAnomaly_Ball
+from pyeit.mesh.wrapper import PyEITAnomaly_Circle, PyEITAnomaly_Ball
 import matplotlib.pyplot as plt
 
 from eit_model.data import EITData, EITImage, build_EITImage
@@ -22,66 +22,68 @@ logger = logging.getLogger(__name__)
 
 INV_SOLVER_PYEIT: dict[str, pyeit.eit.base.EitBase] = {
     "JAC": pyeit.eit.jac.JAC,
-    "BP": pyeit.eit.bp.BP, 
-    "GREIT": pyeit.eit.greit.GREIT
+    "BP": pyeit.eit.bp.BP,
+    "GREIT": pyeit.eit.greit.GREIT,
 }
 
-def used_solver()->list[str]:
+
+def used_solver() -> list[str]:
     return list(INV_SOLVER_PYEIT.keys())
 
 
 @dataclass
 class PyEitRecParams(eit_model.solver_abc.RecParams):
     solver_type: str = next(iter(INV_SOLVER_PYEIT))
-    p: float = 0.5 # for jac, greit
-    lamb: float = 0.001 # for jac, greit
-    n: int = 64 # for greit
-    w:np.ndarray = None # for greit
-    s: float = 20.0 # for greit
-    ratio: float = 0.1# for greit
-    normalize: bool = False# for solver.solve()
-    log_scale:bool = False # for solver.solve()
-    method: str = "kotre" # for jac, greit
-    weight: str = "none" # for bp
-    parser: str = "meas_current" # for fwd
-    background:float = 1.0 # all solver
-    jac_normalized:bool=False # for jac
-    step:int=1 # for fwd adjacent step 1
-    mesh_generation_mode_2D:bool=False # flag to allow 
+    p: float = 0.5  # for jac, greit
+    lamb: float = 0.001  # for jac, greit
+    n: int = 64  # for greit
+    w: np.ndarray = None  # for greit
+    s: float = 20.0  # for greit
+    ratio: float = 0.1  # for greit
+    normalize: bool = False  # for solver.solve()
+    log_scale: bool = False  # for solver.solve()
+    method: str = "kotre"  # for jac, greit
+    weight: str = "none"  # for bp
+    parser: str = "meas_current"  # for fwd
+    background: float = 1.0  # all solver
+    jac_normalized: bool = False  # for jac
+    step: int = 1  # for fwd adjacent step 1
+    mesh_generation_mode_2D: bool = False  # flag to allow
 
 
 INV_SOLVER_PRESETS: dict[str, PyEitRecParams] = {
     "JAC": PyEitRecParams(
-        solver_type= "JAC",
-        n=None, # disabled
+        solver_type="JAC",
+        n=None,  # disabled
         method=["kotre", "lm", "dgn"],
         p=0.2,
         lamb=0.001,
-        weight=None, # disabled 
+        weight=None,  # disabled
     ),
     "BP": PyEitRecParams(
-        solver_type= "BP",
-        p=None, # disabled
-        lamb=None, # disabled
-        n=None, # disabled
-        method=None, # disabled
-        weight=["none", "simple"]
-    ), 
+        solver_type="BP",
+        p=None,  # disabled
+        lamb=None,  # disabled
+        n=None,  # disabled
+        method=None,  # disabled
+        weight=["none", "simple"],
+    ),
     "GREIT": PyEitRecParams(
-        solver_type= "GREIT",
-        method=["dist"], 
+        solver_type="GREIT",
+        method=["dist"],
         p=0.2,
         lamb=1e-2,
         n=32,
-        weight=None, # disabled 
-
-    )
+        weight=None,  # disabled
+    ),
 }
 
-def get_rec_params_preset(solver:str)->PyEitRecParams:
+
+def get_rec_params_preset(solver: str) -> PyEitRecParams:
     if solver not in INV_SOLVER_PRESETS.keys():
-        raise KeyError(f'Presets for {solver=} not defined')
+        raise KeyError(f"Presets for {solver=} not defined")
     return INV_SOLVER_PRESETS[solver]
+
 
 class InvSolverNotReadyError(BaseException):
     """"""
@@ -119,7 +121,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             params[Any]: Reconstruction parameters
         """
         logger.info("Preparation of PYEIT solver: Start...")
-        self._build_mesh_from_pyeit(params=params,import_design=True)
+        self._build_mesh_from_pyeit(params=params, import_design=True)
         # solver.init_fwd() # already set in inv less time of computation...
         self.init_inv(params=params, import_fwd=True)
         sim_data, img_h, img_ih = self.simulate()
@@ -181,7 +183,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         v = self.fwd_solver.solve_eit(perm=image.data)
 
-        return EITData(v, v, v-v, "solved data")
+        return EITData(v, v, v - v, "solved data")
 
     def simulate(
         self, image: EITImage = None, homogenious_conduct: float = 1.0
@@ -200,38 +202,45 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             the simulated ref and measurement,
             and both EIT images used img_h and img_ih
         """
-        img_h = build_EITImage(data=homogenious_conduct, label="homogenious", model=self.eit_mdl)
+        img_h = build_EITImage(
+            data=homogenious_conduct, label="homogenious", model=self.eit_mdl
+        )
         img_ih = image
-        
+
         if img_ih is None:  # create dummy image
             mesh = self.eit_mdl.pyeit_mesh()
             if self.eit_mdl.fem.is_2D:
-                anomaly =  PyEITAnomaly_Circle(
-                    center=[0.4*self.eit_mdl.bbox[1, 0], 0.4*self.eit_mdl.bbox[1, 1]], 
-                    r=self.eit_mdl.refinement/2, 
-                    perm=10)
+                anomaly = PyEITAnomaly_Circle(
+                    center=[
+                        0.4 * self.eit_mdl.bbox[1, 0],
+                        0.4 * self.eit_mdl.bbox[1, 1],
+                    ],
+                    r=self.eit_mdl.refinement / 2,
+                    perm=10,
+                )
 
-            elif self.eit_mdl.fem.is_3D: 
-                anomaly =  PyEITAnomaly_Ball(
-                    center=[0.4*self.eit_mdl.bbox[1, 0], 0.4*self.eit_mdl.bbox[1, 1], 0], 
-                    r=self.eit_mdl.refinement*2, 
-                    perm=10)
-            
+            elif self.eit_mdl.fem.is_3D:
+                anomaly = PyEITAnomaly_Ball(
+                    center=[
+                        0.4 * self.eit_mdl.bbox[1, 0],
+                        0.4 * self.eit_mdl.bbox[1, 1],
+                        0,
+                    ],
+                    r=self.eit_mdl.refinement * 2,
+                    perm=10,
+                )
+
             pyeit_mesh_ih = pyeit.mesh.set_perm(mesh, anomaly=anomaly, background=1.0)
             img_ih = build_EITImage(
-                data=pyeit_mesh_ih.perm,
-                label="inhomogenious",
-                model=self.eit_mdl
+                data=pyeit_mesh_ih.perm, label="inhomogenious", model=self.eit_mdl
             )
-
 
         data_h = self.solve_fwd(img_h)
         data_ih = self.solve_fwd(img_ih)
-        data_ds= data_ih.frame - data_h.frame
+        data_ds = data_ih.frame - data_h.frame
 
         sim_data = EITData(data_h.frame, data_ih.frame, data_ds, "simulated data")
         return sim_data, img_h, img_ih
-    
 
     def init_inv(self, params: PyEitRecParams = None, import_fwd: bool = False) -> None:
         """Initialize the inverse and forward solver from `PyEIT` using
@@ -287,13 +296,15 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             v1=data.frame,
             v0=data.ref_frame,
             normalize=self.params.normalize,
-            log_scale=self.params.log_scale
+            log_scale=self.params.log_scale,
         )
 
         if isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
             _, _, ds = self.inv_solver.mask_value(ds, mask_value=np.NAN)
-        
-        return build_EITImage(data=ds, label=f"PyEIT image: {data.label}", model=self.eit_mdl)
+
+        return build_EITImage(
+            data=ds, label=f"PyEIT image: {data.label}", model=self.eit_mdl
+        )
 
     def set_params(self, params: PyEitRecParams = None) -> None:
         """Set the reconstrustions parameters for each inverse solver type
@@ -316,23 +327,21 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
 
         # setup for each inv_solve type
         if isinstance(self.inv_solver, pyeit.eit.bp.BP):
-            self.inv_solver.setup(
-                weight=self.params.weight
-            )
+            self.inv_solver.setup(weight=self.params.weight)
 
         elif isinstance(self.inv_solver, pyeit.eit.jac.JAC):
             self.inv_solver.setup(
                 p=self.params.p,
                 lamb=self.params.lamb,
                 method=self.params.method,
-                jac_normalized=self.params.jac_normalized
+                jac_normalized=self.params.jac_normalized,
             )
 
         elif isinstance(self.inv_solver, pyeit.eit.greit.GREIT):
             self.inv_solver.setup(
-                method= self.params.method,
+                method=self.params.method,
                 w=self.params.w,
-                p=self.params.p, 
+                p=self.params.p,
                 lamb=self.params.lamb,
                 n=self.params.n,
                 s=self.params.s,
@@ -361,15 +370,17 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             msg = f"Tried to set solver from PyEIT with incompatible mesh {e_pos_mesh=} {e_pos_model=}"
             logger.error(msg)
             raise ValueError(msg)
-        
+
         protocol = PyEITProtocol(
             ex_mat=self.eit_mdl.get_pyeit_ex_mat(),
-            meas_mat=self.eit_mdl.get_pyeit_meas_pattern()
+            meas_mat=self.eit_mdl.get_pyeit_meas_pattern(),
         )
 
-        return mesh , protocol
+        return mesh, protocol
 
-    def _build_mesh_from_pyeit(self, params=PyEitRecParams, import_design: bool = False) -> None:
+    def _build_mesh_from_pyeit(
+        self, params=PyEitRecParams, import_design: bool = False
+    ) -> None:
         """To use `PyEIT` solvers (fwd and inv) a special mesh is needed
         >> the first nodes correspond to the position of the Point electrodes
 
@@ -389,11 +400,10 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             import_design (bool, optional): Set to `True` if you want to import
             the eltrode position . Defaults to False.
         """
-        
 
         # set box and circle fucntion for a 2D cirle design fro pyEIT
         bbox = self.eit_mdl.bbox if import_design else None
-        p_fix=self.eit_mdl.elec_pos()
+        p_fix = self.eit_mdl.elec_pos()
 
         # TODO cicl rect depending on the chamber type
         def circ(pts):
@@ -402,28 +412,33 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             """
             r = np.max(bbox[:, :2]) if bbox is not None else 1.0
             return pyeit.mesh.shape.circle(pts=pts, r=r)
-        
+
         def cylinder(pts):
             """
             define a cylinder in xy corresponding to the eit_model setup
             """
-            r = np.max([self.eit_mdl.setup.chamber.width/2,self.eit_mdl.setup.chamber.length/2])
-            h= self.eit_mdl.setup.chamber.height
-            return pyeit.mesh.shape.cylinder(pts=pts, pc=[0,0,0], r=r, h=h)
-        
+            r = np.max(
+                [
+                    self.eit_mdl.setup.chamber.width / 2,
+                    self.eit_mdl.setup.chamber.length / 2,
+                ]
+            )
+            h = self.eit_mdl.setup.chamber.height
+            return pyeit.mesh.shape.cylinder(pts=pts, pc=[0, 0, 0], r=r, h=h)
+
         if "Cylinder" in self.eit_mdl.setup.chamber.form:
-            fd= cylinder
-        elif"Cubic" in self.eit_mdl.setup.chamber.form:
+            fd = cylinder
+        elif "Cubic" in self.eit_mdl.setup.chamber.form:
             raise NotImplementedError()
-            # fd= cube not implemented 
-        elif"2D_Circ" in self.eit_mdl.setup.chamber.form:
-            fd= circ
+            # fd= cube not implemented
+        elif "2D_Circ" in self.eit_mdl.setup.chamber.form:
+            fd = circ
 
         # special for only 2D!
         if params.mesh_generation_mode_2D:
-            bbox= self.eit_mdl.bbox[:, :2] if bbox is not None else 1.0
-            fd= circ
-            p_fix=self.eit_mdl.elec_pos()[:, :2]
+            bbox = self.eit_mdl.bbox[:, :2] if bbox is not None else 1.0
+            fd = circ
+            p_fix = self.eit_mdl.elec_pos()[:, :2]
 
         par_tmp = {
             "n_el": self.eit_mdl.n_elec if import_design else 16,
@@ -432,11 +447,13 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             "bbox": bbox,
             "p_fix": p_fix if import_design else None,
         }
-        logger.debug(f'{par_tmp=}')
+        logger.debug(f"{par_tmp=}")
 
         pyeit_mesh = pyeit.mesh.create(**par_tmp)
         pyeit_mesh.print_stats()
-        self.eit_mdl.update_mesh(pyeit_mesh, not import_design)  # set the mesh in the model
+        self.eit_mdl.update_mesh(
+            pyeit_mesh, not import_design
+        )  # set the mesh in the model
 
 
 if __name__ == "__main__":
@@ -447,9 +464,7 @@ if __name__ == "__main__":
 
     glob_utils.log.log.main_log()
 
-    p= PyEitRecParams(
-        method= ["kotre", "lm"]
-    )
+    p = PyEitRecParams(method=["kotre", "lm"])
     print(p.method)
 
     eit_mdl = EITModel()

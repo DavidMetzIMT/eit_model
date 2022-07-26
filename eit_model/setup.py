@@ -49,12 +49,14 @@ class EITChamber:
     # _:KW_ONLY
     type: str = "eit_chamber"
     name: str = "NameDesignOfChamber"
-    boxSize: np.ndarray = field(default_factory=lambda: np.array([5., 5., 2.],dtype=float))
+    boxSize: np.ndarray = field(
+        default_factory=lambda: np.array([5.0, 5.0, 2.0], dtype=float)
+    )
     femRefinement: float = 0.5000
     form: str = "Cylinder"
     FORMS: list = field(default_factory=lambda: ["Cylinder", "Cubic", "2D_Circ"])
     ALLOW_ELEC_PLACEMENT: np.ndarray = field(default_factory=lambda: np.array([]))
-    height_2D: float=0
+    height_2D: float = 0
 
     def box_limit(self) -> np.ndarray:
         """Return the Chamber limits as ndarray
