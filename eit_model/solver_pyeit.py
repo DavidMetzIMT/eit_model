@@ -447,7 +447,7 @@ class SolverPyEIT(eit_model.solver_abc.Solver):
             "bbox": bbox,
             "p_fix": p_fix if import_design else None,
         }
-        logger.debug(f"{par_tmp=}")
+        # logger.debug(f"{par_tmp=}")
 
         pyeit_mesh = pyeit.mesh.create(**par_tmp)
         pyeit_mesh.print_stats()
