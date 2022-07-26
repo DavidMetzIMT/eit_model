@@ -233,8 +233,11 @@
    </property>
   </action>
   <action name="action_mesh_show_electrodes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show electrodes</string>
+    <string>Show electrodes pts</string>
    </property>
   </action>
   <action name="action_slicing_set_slices">

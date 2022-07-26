@@ -80,7 +80,7 @@ class PyVistaPlotWidget(MainWindow):
         self.ui.action_exit.triggered.connect(self.close)
 
         self.ui.action_mesh_reset.triggered.connect(self._mesh_reset)
-        self.ui.action_mesh_show_electrodes.triggered.connect(self._show_electrodes)
+        self.ui.action_mesh_show_electrodes.triggered[bool].connect(self._show_electrodes)
         self.ui.action_mesh_dynamic_slicing_x.triggered.connect(
             lambda: self._mesh_dynamic_slicing(0)
         )
@@ -228,6 +228,8 @@ class PyVistaPlotWidget(MainWindow):
     def _set_data(self, data: np.ndarray):
         # TODO control if len()of data is same as tri....??
         self.chamber.cell_data["Conductivity"] = data
+
+        logger.debug(f'{max(data)=}\n\r{min(data)=}\n\r{data=}')
         self._update_data_in_plot()
 
     def _update_data_in_plot(self):
@@ -276,30 +278,51 @@ class PyVistaPlotWidget(MainWindow):
             text_2_display[self.plotter.parallel_projection]
         )
 
-    def _show_electrodes(self):
+    def _show_electrodes(self, val:bool):
+        if not val:
+            for k in self.actors.keys():
+                if "elec_contour_" in k or "elec_label_" in k:
+                    self.plotter.remove_actor(k)
+                    self.slicer[-1].remove_actor(k)
+            return
+        
         elec_pos = self.eit_mdl.fem.elec_pos_orient()[:, :3]
         elec_orient = self.eit_mdl.fem.elec_pos_orient()[:, 3:]
         elec_r = self.eit_mdl.setup.elec_layout.elecSize[0] / 2  # diameter
         elec_label = [str(x + 1) for x in range(elec_pos.shape[0])]
         for i, elec_pos_i in enumerate(elec_pos):
-            elec_mesh = pv.Sphere(elec_r, elec_pos_i)
-            single_electrode = elec_mesh.slice(elec_orient[i, :])
-            # electrodes.append(single_electrode)
-            self.plotter.add_mesh(
-                single_electrode,
-                color="green",
-                line_width=3,
-                pickable=True,
-                name=f"elec_contour_{i}",
-            )
+            # elec_mesh = pv.Sphere(elec_r, elec_pos_i)
+            # single_electrode = elec_mesh.slice(elec_orient[i, :])
+            # # electrodes.append(single_electrode)
+            # name=f"elec_contour_{i}"
+            # self.plotter.add_mesh(
+            #     single_electrode,
+            #     color="green",
+            #     line_width=3,
+            #     pickable=True,
+            #     name=name,
+            # )
+            # self.actors[name] = None
+            name=f"elec_label_{i}"
             self.plotter.add_point_labels(
                 elec_pos,
                 elec_label,
                 font_size=15,
-                name=f"elec_label_{i}",
+                name=name,
                 text_color="r",
                 fill_shape=False,
             )
+
+            self.slicer[-1].add_point_labels(
+                elec_pos,
+                elec_label,
+                font_size=15,
+                name=name,
+                text_color="r",
+                fill_shape=False,
+            )
+
+            self.actors[name] = None
             self.plotter.reset_camera()
 
     def _plot_eit(self):
