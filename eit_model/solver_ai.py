@@ -75,6 +75,11 @@ class SolverAi(Solver):
         raw_samples = reload_samples(MatlabSamples(), self.metadata)
         self.workspace = select_workspace(self.metadata)
         self.workspace.load_model(self.metadata)
+
+       
+
+        self.ready.set()
+
         self.workspace.build_dataset(raw_samples, self.metadata)
         # voltages, _ = self.workspace.extract_samples(
         #     dataset_part="test", idx_samples="all"
@@ -95,7 +100,7 @@ class SolverAi(Solver):
             raw_samples.X[1] - raw_samples.X[1],
             "solved data",
         )
-        self.ready.set()
+        
 
         return init_data
 

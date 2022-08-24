@@ -33,10 +33,9 @@ class EITReconstruction:
     _enable_calibration: str = False
 
     def __init__(self):
-        """The Computing agent is responsible to compute EIT image in a
-        separate Thread compute.
+        """The reconstruction agent is responsible to compute EIT image .
 
-        for that data of type Data2Compute should be added its input buffer
+        for that data of type EITReconstructionData should be added its input buffer
         directly by calling the "add_data2compute"-method or using it
         SignalReciever functionality by passing the data though a signal
 
@@ -179,10 +178,17 @@ Corrections coeffs: {coef}"
         """
         self.rec_enable = enable
 
+    def init_eit_model(self, eit_model: EITModel) -> None:
+        """Initialize internal eit_model
+        """
+        self.eit_model: EITModel = eit_model
+
     def init_solver(self, solver: Solver, params: Any) -> tuple[EITImage, EITData]:
         """Initialize internal solver, optionaly new solver or reconstruction
         parameters can be set before
         """
+        if self.eit_model is None:
+            return logger.warning('please set first eit_model')
         self.solver: Solver = solver(self.eit_model)
         logger.info(f"Reconstructions solver selected: {self.solver}")
         return self.solver.prepare_rec(params)
